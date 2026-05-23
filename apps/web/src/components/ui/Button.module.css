@@ -1,0 +1,106 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.sm {
+  padding: 0.5rem 1rem;
+  font-size: var(--text-sm);
+}
+
+.md {
+  padding: 0.75rem 1.5rem;
+  font-size: var(--text-base);
+}
+
+.lg {
+  padding: 1rem 2rem;
+  font-size: var(--text-lg);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Variants */
+.primary {
+  background: linear-gradient(135deg, var(--accent-primary), hsl(260, 85%, 60%));
+  color: white;
+  box-shadow: 0 2px 8px var(--accent-primary-glow);
+}
+
+.primary:hover:not(:disabled) {
+  box-shadow: 0 4px 16px var(--accent-primary-glow);
+  transform: translateY(-1px);
+}
+
+.primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.secondary {
+  background: var(--bg-glass);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  backdrop-filter: blur(8px);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--bg-glass-hover);
+  border-color: var(--accent-primary);
+}
+
+.danger {
+  background: linear-gradient(135deg, var(--accent-danger), hsl(10, 75%, 55%));
+  color: white;
+  box-shadow: 0 2px 8px var(--accent-danger-glow);
+}
+
+.danger:hover:not(:disabled) {
+  box-shadow: 0 4px 16px var(--accent-danger-glow);
+  transform: translateY(-1px);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--bg-glass);
+  color: var(--text-primary);
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Icon */
+.icon {
+  display: flex;
+  align-items: center;
+  font-size: 1.1em;
+}
