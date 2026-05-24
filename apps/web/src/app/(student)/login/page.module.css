@@ -158,3 +158,33 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
+/* ── Mobile tweaks ────────────────────────────────── */
+
+@media (max-width: 520px) {
+  .page {
+    padding: var(--space-md);
+    align-items: flex-start;
+    padding-top: clamp(1.5rem, 8vh, 3rem);
+  }
+
+  .card {
+    padding: var(--space-xl) var(--space-md);
+    border-radius: var(--radius-xl);
+  }
+
+  .title {
+    font-size: var(--text-xl);
+  }
+
+  .logoIcon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+    margin-bottom: var(--space-md);
+  }
+
+  .header {
+    margin-bottom: var(--space-xl);
+  }
+}

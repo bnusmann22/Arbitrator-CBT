@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useExamTimer } from '@/hooks/useExamTimer';
 import { useTabMonitor } from '@/hooks/useTabMonitor';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import ExamHeader from '@/components/exam/ExamHeader';
 import QuestionNav from '@/components/exam/QuestionNav';
 import QuestionCard from '@/components/exam/QuestionCard';
@@ -63,6 +64,10 @@ export default function ExamPage() {
   const [isSaving, setIsSaving]               = useState(false);
   const [isSubmitting, setIsSubmitting]       = useState(false);
   const [examActive, setExamActive]           = useState(false);
+  const [navOpen, setNavOpen]                 = useState(false);
+
+  // Responsive
+  const isMobile = useIsMobile();
 
   // Debounce answer saves
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -296,8 +301,19 @@ export default function ExamPage() {
         onSubmit={() => setShowSubmitModal(true)}
       />
 
-      {/* Main content */}
-      <div style={{ flex: 1, maxWidth: 1100, margin: '0 auto', width: '100%', padding: '28px 20px', display: 'flex', gap: 20 }}>
+      {/* Main content
+          Desktop: side-by-side  [ QuestionCard | QuestionNav ]
+          Mobile:  full-width QuestionCard only; nav lives in bottom sheet */}
+      <div style={{
+        flex: 1,
+        maxWidth: isMobile ? '100%' : 1100,
+        margin: '0 auto',
+        width: '100%',
+        padding: isMobile ? '12px 12px 80px' : '28px 20px',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 12 : 20,
+      }}>
 
         {/* Question panel */}
         {currentQuestion && (
@@ -314,13 +330,83 @@ export default function ExamPage() {
           />
         )}
 
-        {/* Sidebar nav */}
-        <QuestionNav
-          items={navItems}
-          currentIndex={currentIndex}
-          onNavigate={navigate}
-        />
+        {/* Desktop sidebar nav — hidden on mobile */}
+        {!isMobile && (
+          <QuestionNav
+            items={navItems}
+            currentIndex={currentIndex}
+            onNavigate={navigate}
+          />
+        )}
       </div>
+
+      {/* ── Mobile: bottom bar + question nav sheet ─────────────── */}
+      {isMobile && (
+        <>
+          {/* Fixed bottom bar — always visible, shows progress + opens sheet */}
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 80,
+            background: '#0f172a',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            padding: '8px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+            {/* Progress mini-bar */}
+            <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2 }}>
+              <div style={{
+                height: '100%',
+                width: `${questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0}%`,
+                background: 'linear-gradient(90deg, #6366f1, #10b981)',
+                borderRadius: 2,
+                transition: 'width 0.5s ease',
+              }} />
+            </div>
+
+            {/* Open nav button */}
+            <button
+              onClick={() => setNavOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 16px',
+                background: 'rgba(99,102,241,0.15)',
+                border: '1px solid rgba(99,102,241,0.35)',
+                borderRadius: 10,
+                color: '#a5b4fc',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                minHeight: 44,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              {answeredCount}/{questions.length} answered
+            </button>
+          </div>
+
+          {/* Mobile bottom sheet nav */}
+          <QuestionNav
+            items={navItems}
+            currentIndex={currentIndex}
+            onNavigate={navigate}
+            isOpen={navOpen}
+            onClose={() => setNavOpen(false)}
+          />
+        </>
+      )}
 
       {/* Overlays */}
       {showWarning && (

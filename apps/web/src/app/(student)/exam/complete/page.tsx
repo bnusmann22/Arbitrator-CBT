@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function ExamCompletePage() {
+  const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
   const [candidateName, setCandidateName] = useState<string>('');
 
@@ -90,7 +92,7 @@ export default function ExamCompletePage() {
 
         {/* Header */}
         <div style={{
-          padding: '40px 36px 28px',
+          padding: isMobile ? '28px 20px 20px' : '40px 36px 28px',
           textAlign: 'center',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}>
@@ -135,7 +137,7 @@ export default function ExamCompletePage() {
         </div>
 
         {/* Main message */}
-        <div style={{ padding: '28px 36px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ padding: isMobile ? '20px 16px' : '28px 36px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
           {/* Info card */}
           <div style={{
@@ -194,7 +196,7 @@ export default function ExamCompletePage() {
 
         {/* Footer */}
         <div style={{
-          padding: '20px 36px',
+          padding: isMobile ? '16px' : '20px 36px',
           textAlign: 'center',
         }}>
           <p style={{
