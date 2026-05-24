@@ -1,0 +1,36 @@
+# fly.toml — Arbitration Sandbox API
+# Deploy with: flyctl deploy --config fly.toml
+# https://fly.io/docs/reference/configuration/
+
+app = "arbitration-sandbox-api"
+primary_region = "lhr"          # London — change to nearest: iad, sin, syd, etc.
+kill_signal = "SIGINT"
+kill_timeout = "5s"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+  # Dockerfile is written to run from the repo root (monorepo)
+
+[env]
+  NODE_ENV    = "production"
+  PORT        = "4000"
+  # All secrets below are set via: flyctl secrets set KEY="value"
+  # FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY,
+  # FIREBASE_STORAGE_BUCKET, JWT_SECRET, JWT_EXPIRATION, CORS_ORIGIN
+
+[http_service]
+  internal_port = 4000
+  force_https   = true
+  auto_stop_machines  = true   # scale to zero when idle (free tier)
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

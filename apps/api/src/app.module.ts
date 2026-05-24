@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FirebaseModule } from './config/firebase.module';
 import { HealthController } from './health.controller';
@@ -18,7 +19,7 @@ import { ExamModule } from './modules/exam/exam.module';
       envFilePath: '.env',
     }),
 
-    // Rate limiting — 60 requests per minute
+    // Rate limiting — 60 requests per minute per IP
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
 
     // Cron scheduler — required for auto-submit job in ExamService
@@ -35,5 +36,9 @@ import { ExamModule } from './modules/exam/exam.module';
     ExamModule,
   ],
   controllers: [HealthController],
+  providers: [
+    // Apply rate limiting globally to every route
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

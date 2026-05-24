@@ -43,3 +43,6 @@ coverage/
 
 # npm
 package-lock.json
+
+.vercel
+.env*
