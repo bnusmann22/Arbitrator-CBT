@@ -3,7 +3,7 @@
 # https://fly.io/docs/reference/configuration/
 
 app = "arbitration-sandbox-api"
-primary_region = "lhr"          # London — change to nearest: iad, sin, syd, etc.
+primary_region = "jnb"          # London — change to nearest: iad, sin, syd, etc.
 kill_signal = "SIGINT"
 kill_timeout = "5s"
 
@@ -21,9 +21,9 @@ kill_timeout = "5s"
 [http_service]
   internal_port = 4000
   force_https   = true
-  auto_stop_machines  = true   # scale to zero when idle (free tier)
+  auto_stop_machines  = "off"  # never sleep — eliminates cold-start delays
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1     # always keep 1 warm
 
   [http_service.concurrency]
     type       = "connections"
@@ -31,6 +31,6 @@ kill_timeout = "5s"
     soft_limit = 80
 
 [[vm]]
-  memory = "256mb"
+  memory = "512mb"             # bumped from 256mb — NestJS + Tesseract needs headroom
   cpu_kind = "shared"
   cpus = 1
