@@ -23,7 +23,10 @@
       "Bash(git add *)",
       "Bash(git commit -m 'fix\\(types\\): point main and types fields to dist output *)",
       "PowerShell(Invoke-RestMethod -Uri \"https://arbitrator-cbt-production.up.railway.app/api/health\" -Method Get)",
-      "Bash(git commit -m 'fix\\(web\\): strip trailing slash from NEXT_PUBLIC_API_URL to prevent //path *)"
+      "Bash(git commit -m 'fix\\(web\\): strip trailing slash from NEXT_PUBLIC_API_URL to prevent //path *)",
+      "mcp__claude_ai_Vercel__get_project",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "Bash(git commit --allow-empty -m 'chore\\(web\\): trigger redeploy with corrected NEXT_PUBLIC_API_URL *)"
     ]
   }
 }
