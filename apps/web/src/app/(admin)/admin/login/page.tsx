@@ -119,6 +119,9 @@ export default function AdminLoginPage() {
 
     setIsLoading(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/admin/login`,
         {
@@ -129,8 +132,11 @@ export default function AdminLoginPage() {
             email: values.email.trim().toLowerCase(),
             password: values.password,
           }),
+          signal: controller.signal,
         },
       );
+
+      clearTimeout(timeoutId);
 
       const data = await res.json();
 
@@ -140,8 +146,12 @@ export default function AdminLoginPage() {
       }
 
       router.push('/dashboard');
-    } catch {
-      setServerError('Unable to reach the server. Please try again.');
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setServerError('Request timed out. Please try again.');
+      } else {
+        setServerError('Unable to reach the server. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
