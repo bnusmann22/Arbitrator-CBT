@@ -9,7 +9,10 @@ import * as admin from 'firebase-admin';
 import { extractTextFromPdf } from './parsers/pdf.parser';
 import { extractTextFromDocx } from './parsers/docx.parser';
 import { extractMcqQuestions, ParsedQuestion } from './parsers/mcq.extractor';
+import { extractAnswerKey } from './parsers/answer-key.extractor';
+import { extractTextFromImage, IMAGE_MIME_TYPES } from './parsers/image.parser';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { CreateManualQuestionDto } from './dto/create-manual-question.dto';
 
 export interface QuestionDoc {
   id: string;
@@ -232,6 +235,203 @@ export class QuestionService {
     await batch.commit();
 
     this.logger.log(`Deleted question ${questionId} from exam ${examId}`);
+  }
+
+  // ── Manual Question Add ───────────────────────────────────────────────────
+
+  async createManualQuestion(
+    examId: string,
+    dto: CreateManualQuestionDto,
+  ): Promise<QuestionDoc> {
+    const examSnap = await this.db.collection('exams').doc(examId).get();
+    if (!examSnap.exists) {
+      throw new NotFoundException(`Exam ${examId} not found.`);
+    }
+
+    const questionsRef = this.db
+      .collection('exams')
+      .doc(examId)
+      .collection('questions');
+
+    // Determine next order number
+    const snap = await questionsRef.orderBy('order', 'desc').limit(1).get();
+    const lastOrder = snap.empty ? 0 : (snap.docs[0].data().order ?? 0);
+
+    const now = admin.firestore.Timestamp.now();
+    const ref = questionsRef.doc();
+
+    const data = {
+      examId,
+      questionText: dto.questionText,
+      options: dto.options,
+      correctAnswer: dto.correctAnswer,
+      needsReview: false,
+      order: lastOrder + 1,
+      sourceFile: 'manual',
+      createdAt: now,
+    };
+
+    const batch = this.db.batch();
+    batch.set(ref, data);
+    batch.update(this.db.collection('exams').doc(examId), {
+      questionCount: admin.firestore.FieldValue.increment(1),
+      updatedAt: now,
+    });
+
+    await batch.commit();
+    this.logger.log(`Manual question added to exam ${examId}: ${ref.id}`);
+
+    return this.docToQuestion(ref.id, examId, data);
+  }
+
+  // ── Dual-File Upload (question file + answer key file) ────────────────────
+
+  async uploadAndParseDual(
+    questionFile: Express.Multer.File,
+    answerFile: Express.Multer.File,
+    examId: string,
+  ): Promise<{
+    saved: number;
+    needsReview: number;
+    matched: number;
+    questions: QuestionDoc[];
+  }> {
+    const examSnap = await this.db.collection('exams').doc(examId).get();
+    if (!examSnap.exists) {
+      throw new NotFoundException(`Exam ${examId} not found.`);
+    }
+
+    // ── Extract question text ─────────────────────────────────────────────
+    let questionText: string;
+    if (questionFile.mimetype === 'application/pdf') {
+      questionText = await extractTextFromPdf(questionFile.buffer);
+    } else if (
+      questionFile.mimetype ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      questionFile.mimetype === 'application/msword'
+    ) {
+      questionText = await extractTextFromDocx(questionFile.buffer);
+    } else {
+      throw new BadRequestException(
+        'Question file must be PDF or DOCX.',
+      );
+    }
+
+    if (!questionText.trim()) {
+      throw new BadRequestException(
+        'No text could be extracted from the question file.',
+      );
+    }
+
+    // ── Extract answer key text ───────────────────────────────────────────
+    let answerText: string;
+
+    if (answerFile.mimetype === 'application/pdf') {
+      answerText = await extractTextFromPdf(answerFile.buffer);
+    } else if (
+      answerFile.mimetype ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      answerFile.mimetype === 'application/msword'
+    ) {
+      answerText = await extractTextFromDocx(answerFile.buffer);
+    } else if (answerFile.mimetype === 'text/plain') {
+      answerText = answerFile.buffer.toString('utf-8');
+    } else if (IMAGE_MIME_TYPES.includes(answerFile.mimetype)) {
+      this.logger.log(`Running OCR on answer key image: ${answerFile.originalname}`);
+      try {
+        answerText = await extractTextFromImage(answerFile.buffer);
+      } catch (ocrErr) {
+        throw new BadRequestException(
+          `OCR failed on answer key image: ${(ocrErr as Error).message}`,
+        );
+      }
+    } else {
+      throw new BadRequestException(
+        'Answer file must be PDF, DOCX, TXT, or an image (JPG, PNG, BMP, TIFF, WebP).',
+      );
+    }
+
+    if (!answerText.trim()) {
+      throw new BadRequestException(
+        'No text could be extracted from the answer key file.',
+      );
+    }
+
+    // ── Parse questions ────────────────────────────────────────────────────
+    const parsedQuestions = extractMcqQuestions(questionText);
+    if (parsedQuestions.length === 0) {
+      throw new BadRequestException(
+        'No MCQ questions detected in the question file.',
+      );
+    }
+
+    // ── Parse answer key ───────────────────────────────────────────────────
+    const answerKey = extractAnswerKey(answerText);
+    this.logger.log(
+      `Answer key extracted: ${Object.keys(answerKey).length} answers for ${parsedQuestions.length} questions`,
+    );
+
+    // ── Map answers to questions ───────────────────────────────────────────
+    let matched = 0;
+    const finalQuestions: ParsedQuestion[] = parsedQuestions.map((q) => {
+      const answer = answerKey[q.order];
+      if (answer) {
+        matched++;
+        return { ...q, correctAnswer: answer, needsReview: false };
+      }
+      return { ...q, needsReview: true };
+    });
+
+    // ── Batch write to Firestore ───────────────────────────────────────────
+    const questionsRef = this.db
+      .collection('exams')
+      .doc(examId)
+      .collection('questions');
+
+    const now = admin.firestore.Timestamp.now();
+    const sourceLabel = `${questionFile.originalname} + ${answerFile.originalname}`;
+    const batch = this.db.batch();
+    const docRefs: admin.firestore.DocumentReference[] = [];
+
+    for (const q of finalQuestions) {
+      const ref = questionsRef.doc();
+      docRefs.push(ref);
+      batch.set(ref, {
+        examId,
+        questionText: q.questionText,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        needsReview: q.needsReview,
+        order: q.order,
+        sourceFile: sourceLabel,
+        createdAt: now,
+      });
+    }
+
+    batch.update(this.db.collection('exams').doc(examId), {
+      questionCount: admin.firestore.FieldValue.increment(finalQuestions.length),
+      updatedAt: now,
+    });
+
+    await batch.commit();
+    this.logger.log(
+      `Dual upload: ${finalQuestions.length} questions saved, ${matched} answers matched for exam ${examId}`,
+    );
+
+    const savedDocs: QuestionDoc[] = finalQuestions.map((q, idx) => ({
+      id: docRefs[idx].id,
+      examId,
+      ...q,
+      sourceFile: sourceLabel,
+      createdAt: new Date(),
+    }));
+
+    return {
+      saved: finalQuestions.length,
+      needsReview: finalQuestions.filter((q) => q.needsReview).length,
+      matched,
+      questions: savedDocs,
+    };
   }
 
   async deleteAllQuestions(examId: string): Promise<number> {

@@ -505,7 +505,7 @@ export default function ResultsPage() {
                                   fontSize: '0.72rem',
                                   fontWeight: 700,
                                   borderRadius: 7,
-                                  border: 'none',
+                                  border: '1px solid hsla(250,90%,65%,0.3)',
                                   cursor: pdfLoading === c.id ? 'not-allowed' : 'pointer',
                                   background: pdfLoading === c.id
                                     ? 'var(--bg-tertiary)'
@@ -513,7 +513,6 @@ export default function ResultsPage() {
                                   color: pdfLoading === c.id
                                     ? 'var(--text-muted)'
                                     : 'var(--accent-primary)',
-                                  border: '1px solid hsla(250,90%,65%,0.3)' as string,
                                   transition: 'all 0.15s',
                                   whiteSpace: 'nowrap',
                                 }}

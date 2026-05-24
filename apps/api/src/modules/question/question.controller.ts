@@ -8,20 +8,23 @@ import {
   Body,
   Query,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   UseGuards,
   HttpCode,
   HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { QuestionService } from './question.service';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { CreateManualQuestionDto } from './dto/create-manual-question.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@arbitration/types';
+import { IMAGE_MIME_TYPES } from './parsers/image.parser';
 
 const FIFTY_MB = 50 * 1024 * 1024;
 
@@ -64,6 +67,67 @@ export class QuestionController {
     }
 
     return this.questionService.uploadAndParse(file, examId);
+  }
+
+  // ── POST /questions/manual?examId=xxx ────────────────────────────────────
+
+  @Post('manual')
+  async addManualQuestion(
+    @Query('examId') examId: string,
+    @Body() dto: CreateManualQuestionDto,
+  ) {
+    if (!examId) throw new BadRequestException('examId query parameter is required.');
+    return this.questionService.createManualQuestion(examId, dto);
+  }
+
+  // ── POST /questions/upload-dual?examId=xxx ────────────────────────────────
+
+  @Post('upload-dual')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'questionFile', maxCount: 1 },
+        { name: 'answerFile', maxCount: 1 },
+      ],
+      {
+        storage: memoryStorage(),
+        limits: { fileSize: FIFTY_MB },
+        fileFilter: (_req, file, cb) => {
+          const allowed = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword',
+            'text/plain',
+            ...IMAGE_MIME_TYPES,
+          ];
+          if (allowed.includes(file.mimetype)) {
+            cb(null, true);
+          } else {
+            cb(
+              new BadRequestException(
+                `File type "${file.mimetype}" is not supported. Use PDF, DOCX, TXT, or an image.`,
+              ),
+              false,
+            );
+          }
+        },
+      },
+    ),
+  )
+  async uploadDual(
+    @UploadedFiles()
+    files: {
+      questionFile?: Express.Multer.File[];
+      answerFile?: Express.Multer.File[];
+    },
+    @Query('examId') examId: string,
+  ) {
+    if (!examId) throw new BadRequestException('examId query parameter is required.');
+    const questionFile = files?.questionFile?.[0];
+    const answerFile = files?.answerFile?.[0];
+    if (!questionFile) throw new BadRequestException('No question file was uploaded.');
+    if (!answerFile) throw new BadRequestException('No answer key file was uploaded.');
+    return this.questionService.uploadAndParseDual(questionFile, answerFile, examId);
   }
 
   // ── GET /questions?examId=xxx ─────────────────────────────────────────────

@@ -12,6 +12,7 @@
     "seed:admin": "ts-node src/scripts/seed-admin.ts"
   },
   "dependencies": {
+    "@arbitration/types": "*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -32,7 +33,7 @@
     "pdf-parse": "^1.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "@arbitration/types": "*"
+    "tesseract.js": "^4.1.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",

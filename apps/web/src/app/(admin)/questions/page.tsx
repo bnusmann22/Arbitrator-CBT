@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import AdminNav from '@/components/admin/AdminNav';
 import UploadZone, { UploadResult, ParsedQuestionRow } from '@/components/admin/UploadZone';
+import DualUploadZone from '@/components/admin/DualUploadZone';
+import ManualQuestionForm from '@/components/admin/ManualQuestionForm';
 import QuestionPreview from '@/components/admin/QuestionPreview';
 import styles from './page.module.css';
 
@@ -13,6 +15,14 @@ interface Exam {
   questionCount: number;
 }
 
+type TabId = 'upload' | 'dual' | 'manual';
+
+const TABS: { id: TabId; label: string; icon: string }[] = [
+  { id: 'upload',  label: 'Upload File',     icon: '📁' },
+  { id: 'dual',    label: 'Dual Upload',      icon: '🗝' },
+  { id: 'manual',  label: 'Add Manually',     icon: '✏️' },
+];
+
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
 export default function QuestionsPage() {
@@ -21,8 +31,14 @@ export default function QuestionsPage() {
   const [questions, setQuestions] = useState<ParsedQuestionRow[]>([]);
   const [loadingExams, setLoadingExams] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const [uploadResult, setUploadResult] = useState<{ saved: number; needsReview: number } | null>(null);
+  const [uploadResult, setUploadResult] = useState<{
+    saved: number;
+    needsReview: number;
+    matched?: number;
+    mode?: TabId;
+  } | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('upload');
 
   // ── Load exams ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -54,14 +70,38 @@ export default function QuestionsPage() {
       .finally(() => setLoadingQuestions(false));
   }, [selectedExamId]);
 
-  // ── Upload success handler ──────────────────────────────────────────────
+  // ── Upload success handler (single file) ────────────────────────────────
   function handleUploadSuccess(result: UploadResult) {
+    mergeQuestions(result.questions);
+    setUploadResult({ saved: result.saved, needsReview: result.needsReview, mode: 'upload' });
+  }
+
+  // ── Dual upload success handler ─────────────────────────────────────────
+  function handleDualSuccess(result: UploadResult & { matched: number }) {
+    mergeQuestions(result.questions);
+    setUploadResult({
+      saved: result.saved,
+      needsReview: result.needsReview,
+      matched: result.matched,
+      mode: 'dual',
+    });
+  }
+
+  // ── Manual question added ───────────────────────────────────────────────
+  function handleManualSuccess(question: ParsedQuestionRow) {
+    setQuestions((prev) =>
+      [...prev, question].sort((a, b) => a.order - b.order),
+    );
+    setUploadResult({ saved: 1, needsReview: 0, mode: 'manual' });
+  }
+
+  // ── Merge newly uploaded questions into the list ────────────────────────
+  function mergeQuestions(newOnes: ParsedQuestionRow[]) {
     setQuestions((prev) => {
       const existingIds = new Set(prev.map((q) => q.id));
-      const newOnes = result.questions.filter((q) => !existingIds.has(q.id));
-      return [...prev, ...newOnes].sort((a, b) => a.order - b.order);
+      const fresh = newOnes.filter((q) => !existingIds.has(q.id));
+      return [...prev, ...fresh].sort((a, b) => a.order - b.order);
     });
-    setUploadResult({ saved: result.saved, needsReview: result.needsReview });
   }
 
   // ── Delete single question ──────────────────────────────────────────────
@@ -72,13 +112,20 @@ export default function QuestionsPage() {
   // ── Update answer locally after API call ────────────────────────────────
   function handleAnswerChange(id: string, answer: 'A' | 'B' | 'C' | 'D') {
     setQuestions((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, correctAnswer: answer, needsReview: false } : q)),
+      prev.map((q) =>
+        q.id === id ? { ...q, correctAnswer: answer, needsReview: false } : q,
+      ),
     );
   }
 
   // ── Delete all questions ────────────────────────────────────────────────
   async function handleDeleteAll() {
-    if (!confirm(`Delete ALL ${questions.length} questions from this exam? This cannot be undone.`)) return;
+    if (
+      !confirm(
+        `Delete ALL ${questions.length} questions from this exam? This cannot be undone.`,
+      )
+    )
+      return;
     setDeletingAll(true);
     try {
       await fetch(`${API}/questions/${selectedExamId}`, {
@@ -86,6 +133,7 @@ export default function QuestionsPage() {
         credentials: 'include',
       });
       setQuestions([]);
+      setUploadResult(null);
     } catch {
       alert('Failed to delete questions.');
     } finally {
@@ -104,7 +152,7 @@ export default function QuestionsPage() {
         <div className={styles.header}>
           <h1 className={styles.title}>Question Management</h1>
           <p className={styles.subtitle}>
-            Upload PDF or DOCX files to auto-parse MCQ questions
+            Add questions by uploading a file, mapping a separate answer key, or entering them manually
           </p>
         </div>
 
@@ -134,30 +182,100 @@ export default function QuestionsPage() {
           </div>
         </div>
 
-        {/* Upload zone */}
         {selectedExamId ? (
           <>
+            {/* ── Tab selector + content ─────────────────────────────────── */}
             <div className={styles.uploadSection}>
-              <h2 className={styles.sectionTitle}>Upload Questions</h2>
-              <UploadZone
-                examId={selectedExamId}
-                onSuccess={handleUploadSuccess}
-              />
+
+              {/* Tabs */}
+              <div className={styles.tabBar}>
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={
+                      activeTab === tab.id
+                        ? `${styles.tabBtn} ${styles.tabBtnActive}`
+                        : styles.tabBtn
+                    }
+                    onClick={() => { setActiveTab(tab.id); setUploadResult(null); }}
+                  >
+                    <span className={styles.tabIcon}>{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              <div className={styles.tabContent}>
+                {activeTab === 'upload' && (
+                  <>
+                    <p className={styles.tabHint}>
+                      Upload a single PDF or DOCX file containing numbered MCQ questions.
+                      The parser supports most standard formats — numbered options (A. / A) / (A)),
+                      inline options, and embedded or trailing answer lines.
+                    </p>
+                    <UploadZone examId={selectedExamId} onSuccess={handleUploadSuccess} />
+                  </>
+                )}
+
+                {activeTab === 'dual' && (
+                  <>
+                    <p className={styles.tabHint}>
+                      Upload your question file and a separate answer key file.
+                      The answer key is read using OCR (for images) or text extraction (for PDF/DOCX/TXT),
+                      and answers are matched to questions by their number.
+                    </p>
+                    <DualUploadZone examId={selectedExamId} onSuccess={handleDualSuccess} />
+                  </>
+                )}
+
+                {activeTab === 'manual' && (
+                  <>
+                    <p className={styles.tabHint}>
+                      Add a single question manually. Fill in the question text, all four options,
+                      and select the correct answer. Each submission appends to the existing question list.
+                    </p>
+                    <ManualQuestionForm
+                      examId={selectedExamId}
+                      onSuccess={handleManualSuccess}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Result toast */}
               {uploadResult && (
                 <div className={styles.uploadResult}>
-                  ✅ Parsed {uploadResult.saved} questions
-                  {uploadResult.needsReview > 0 && (
-                    <> — ⚠ {uploadResult.needsReview} need answer review</>
+                  {uploadResult.mode === 'manual' ? (
+                    <>✅ Question added successfully</>
+                  ) : uploadResult.mode === 'dual' ? (
+                    <>
+                      ✅ Parsed {uploadResult.saved} questions
+                      {uploadResult.matched != null && (
+                        <> — 🗝 {uploadResult.matched} answers matched</>
+                      )}
+                      {uploadResult.needsReview > 0 && (
+                        <> — ⚠ {uploadResult.needsReview} need answer review</>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      ✅ Parsed {uploadResult.saved} questions
+                      {uploadResult.needsReview > 0 && (
+                        <> — ⚠ {uploadResult.needsReview} need answer review</>
+                      )}
+                    </>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Questions table */}
+            {/* ── Questions table ────────────────────────────────────────── */}
             <div className={styles.questionsSection}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  Questions {selectedExam && `— ${selectedExam.title}`}
+                  Questions{selectedExam ? ` — ${selectedExam.title}` : ''}
+                  <span className={styles.questionCount}>{questions.length}</span>
                 </h2>
                 {questions.length > 0 && (
                   <button
