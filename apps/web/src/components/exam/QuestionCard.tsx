@@ -10,7 +10,7 @@ interface QuestionOptions {
 }
 
 interface QuestionCardProps {
-  index: number;          // 0-based display index (shown as index+1)
+  index: number;
   totalQuestions: number;
   questionText: string;
   options: QuestionOptions;
@@ -21,11 +21,14 @@ interface QuestionCardProps {
   isSaving?: boolean;
 }
 
-const OPTION_KEYS: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+const KEYS: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
 
-const OPTION_LABEL_STYLE = 'flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all select-none';
-const OPTION_SELECTED = 'border-blue-500 bg-blue-50 text-blue-900';
-const OPTION_UNSELECTED = 'border-gray-200 bg-white text-gray-800 hover:border-blue-300 hover:bg-blue-50/50';
+const OPTION_COLOURS: Record<string, { border: string; bg: string; bubble: string; text: string }> = {
+  A: { border: '#6366f1', bg: 'rgba(99,102,241,0.08)',  bubble: '#6366f1', text: '#4338ca' },
+  B: { border: '#0ea5e9', bg: 'rgba(14,165,233,0.08)',  bubble: '#0ea5e9', text: '#0369a1' },
+  C: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  bubble: '#10b981', text: '#065f46' },
+  D: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', bubble: '#f59e0b', text: '#92400e' },
+};
 
 export default function QuestionCard({
   index,
@@ -39,81 +42,254 @@ export default function QuestionCard({
   isSaving = false,
 }: QuestionCardProps) {
   return (
-    <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Question header */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-          Question {index + 1} of {totalQuestions}
-        </span>
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#ffffff',
+      borderRadius: 16,
+      overflow: 'hidden',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+      border: '1px solid #e2e8f0',
+    }}>
+
+      {/* ── Question header ───────────────────────────── */}
+      <div style={{
+        padding: '16px 24px',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderBottom: '1px solid #e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Number pill */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 14px',
+            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            borderRadius: 999,
+            color: '#fff',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
+          }}>
+            Question {index + 1} of {totalQuestions}
+          </div>
+
+          {selectedOption && (
+            <div style={{
+              fontSize: '0.7rem',
+              color: '#10b981',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="6" fill="#10b981" />
+                <path d="M3.5 6l1.8 1.8 3.2-3.6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Answered
+            </div>
+          )}
+        </div>
+
+        {/* Save indicator */}
         {isSaving && (
-          <span className="text-xs text-blue-500 animate-pulse">Saving…</span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: '0.72rem',
+            color: '#6366f1',
+          }}>
+            <div style={{
+              width: 10,
+              height: 10,
+              border: '2px solid #6366f1',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              animation: 'spin 0.6s linear infinite',
+            }} />
+            Saving…
+          </div>
         )}
       </div>
 
-      {/* Question body */}
-      <div className="p-6">
+      {/* ── Question body ─────────────────────────────── */}
+      <div style={{ flex: 1, padding: '28px 24px 20px' }}>
+
         {/* Question text */}
-        <p className="text-gray-900 text-base leading-relaxed font-medium mb-6 whitespace-pre-wrap">
+        <p style={{
+          fontSize: '1rem',
+          lineHeight: 1.75,
+          color: '#1e293b',
+          fontWeight: 500,
+          marginBottom: 28,
+          whiteSpace: 'pre-wrap',
+        }}>
           {questionText}
         </p>
 
         {/* Options */}
-        <div className="flex flex-col gap-3" role="radiogroup" aria-label="Answer options">
-          {OPTION_KEYS.map((key) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} role="radiogroup">
+          {KEYS.map((key) => {
             const isSelected = selectedOption === key;
+            const col = OPTION_COLOURS[key];
             return (
               <label
                 key={key}
-                className={`${OPTION_LABEL_STYLE} ${isSelected ? OPTION_SELECTED : OPTION_UNSELECTED}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 14,
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  border: `2px solid ${isSelected ? col.border : '#e2e8f0'}`,
+                  background: isSelected ? col.bg : '#fff',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  userSelect: 'none',
+                  boxShadow: isSelected ? `0 0 0 3px ${col.border}22` : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    (e.currentTarget as HTMLLabelElement).style.borderColor = col.border + '80';
+                    (e.currentTarget as HTMLLabelElement).style.background = col.bg + '80';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    (e.currentTarget as HTMLLabelElement).style.borderColor = '#e2e8f0';
+                    (e.currentTarget as HTMLLabelElement).style.background = '#fff';
+                  }
+                }}
               >
                 <input
                   type="radio"
-                  name={`question-${index}`}
+                  name={`q-${index}`}
                   value={key}
                   checked={isSelected}
                   onChange={() => onSelect(key)}
-                  className="sr-only"
+                  style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
                 />
-                {/* Option letter bubble */}
-                <span
-                  className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${
-                    isSelected
-                      ? 'bg-blue-500 border-blue-500 text-white'
-                      : 'border-gray-300 text-gray-500'
-                  }`}
-                >
+
+                {/* Letter bubble */}
+                <div style={{
+                  flexShrink: 0,
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: isSelected ? col.bubble : '#f1f5f9',
+                  border: `2px solid ${isSelected ? col.bubble : '#cbd5e1'}`,
+                  color: isSelected ? '#fff' : '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  transition: 'all 0.15s ease',
+                  boxShadow: isSelected ? `0 2px 8px ${col.bubble}55` : 'none',
+                }}>
                   {key}
+                </div>
+
+                {/* Option text */}
+                <span style={{
+                  fontSize: '0.9rem',
+                  lineHeight: 1.6,
+                  color: isSelected ? '#1e293b' : '#475569',
+                  fontWeight: isSelected ? 600 : 400,
+                  paddingTop: 4,
+                  flex: 1,
+                  transition: 'all 0.15s ease',
+                }}>
+                  {options[key]}
                 </span>
-                <span className="text-sm leading-relaxed pt-0.5">{options[key]}</span>
               </label>
             );
           })}
         </div>
       </div>
 
-      {/* Navigation footer */}
-      <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50">
+      {/* ── Navigation footer ─────────────────────────── */}
+      <div style={{
+        padding: '14px 24px',
+        borderTop: '1px solid #e2e8f0',
+        background: '#f8fafc',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+      }}>
         <button
           onClick={onPrev}
           disabled={index === 0}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '9px 18px',
+            background: '#fff',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: 10,
+            color: '#475569',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            cursor: index === 0 ? 'not-allowed' : 'pointer',
+            opacity: index === 0 ? 0.4 : 1,
+            transition: 'all 0.15s',
+          }}
         >
           ← Previous
         </button>
 
-        {selectedOption && (
+        {selectedOption ? (
           <button
-            onClick={() => onSelect(selectedOption)} // re-select = clear (handled by parent)
-            className="text-xs text-gray-400 hover:text-red-500 underline transition-colors"
+            onClick={() => onSelect(selectedOption)}
+            style={{
+              padding: '6px 14px',
+              background: 'transparent',
+              border: '1.5px solid #fca5a5',
+              borderRadius: 8,
+              color: '#ef4444',
+              fontSize: '0.73rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
           >
-            Clear answer
+            ✕ Clear
           </button>
+        ) : (
+          <div />
         )}
 
         <button
           onClick={onNext}
           disabled={index === totalQuestions - 1}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '9px 18px',
+            background: index === totalQuestions - 1
+              ? '#f1f5f9'
+              : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            border: '1.5px solid transparent',
+            borderRadius: 10,
+            color: index === totalQuestions - 1 ? '#94a3b8' : '#fff',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            cursor: index === totalQuestions - 1 ? 'not-allowed' : 'pointer',
+            opacity: index === totalQuestions - 1 ? 0.5 : 1,
+            boxShadow: index === totalQuestions - 1 ? 'none' : '0 2px 8px rgba(99,102,241,0.35)',
+            transition: 'all 0.15s',
+          }}
         >
           Next →
         </button>

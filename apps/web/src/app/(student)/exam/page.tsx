@@ -278,7 +278,7 @@ export default function ExamPage() {
   // ── Render: Exam ───────────────────────────────────────────────────────────
   return (
     <div
-      className="min-h-screen bg-gray-50 flex flex-col select-none"
+      style={{ minHeight: '100vh', background: '#f1f5f9', display: 'flex', flexDirection: 'column', userSelect: 'none' }}
       onContextMenu={handleContextMenu}
       onCopy={handleCopy}
       onCut={handleCut}
@@ -297,7 +297,7 @@ export default function ExamPage() {
       />
 
       {/* Main content */}
-      <div className="flex-1 max-w-6xl mx-auto w-full px-4 py-6 flex gap-6">
+      <div style={{ flex: 1, maxWidth: 1100, margin: '0 auto', width: '100%', padding: '28px 20px', display: 'flex', gap: 20 }}>
 
         {/* Question panel */}
         {currentQuestion && (

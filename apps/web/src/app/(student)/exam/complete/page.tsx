@@ -1,200 +1,231 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface ExamResult {
-  score?: number;           // correct answers count
-  totalQuestions?: number;
-  totalAnswered?: number;
-  percentage?: number;      // 0-100
-  disqualified?: boolean;
-  timedOut?: boolean;
-}
-
-function ScoreRing({ percentage }: { percentage: number }) {
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const filled = circumference - (percentage / 100) * circumference;
-
-  const colour =
-    percentage >= 70
-      ? '#22c55e'   // green
-      : percentage >= 50
-      ? '#f59e0b'   // amber
-      : '#ef4444';  // red
-
-  return (
-    <div className="relative w-36 h-36 mx-auto">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-        {/* Track */}
-        <circle
-          cx="60" cy="60" r={radius}
-          fill="none" stroke="#e5e7eb" strokeWidth="10"
-        />
-        {/* Progress */}
-        <circle
-          cx="60" cy="60" r={radius}
-          fill="none"
-          stroke={colour}
-          strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={filled}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s ease' }}
-        />
-      </svg>
-      {/* Label */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold" style={{ color: colour }}>
-          {percentage}%
-        </span>
-        <span className="text-xs text-gray-400">Score</span>
-      </div>
-    </div>
-  );
-}
 
 export default function ExamCompletePage() {
-  const router = useRouter();
-  const [result, setResult] = useState<ExamResult | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [candidateName, setCandidateName] = useState<string>('');
 
   useEffect(() => {
-    // Read result written by exam page before redirect
-    const raw = sessionStorage.getItem('examResult');
-    if (raw) {
-      try {
-        setResult(JSON.parse(raw) as ExamResult);
-      } catch {
-        setResult({});
+    // Pull candidate name from sessionStorage if the exam page stored it
+    try {
+      const raw = sessionStorage.getItem('examResult');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { candidateName?: string };
+        if (parsed.candidateName) setCandidateName(parsed.candidateName);
       }
-    } else {
-      setResult({});
-    }
+    } catch { /* ignore */ }
     setMounted(true);
   }, []);
 
-  if (!mounted || result === null) {
+  if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0f172a',
+      }}>
+        <div style={{
+          width: 40,
+          height: 40,
+          border: '4px solid rgba(99,102,241,0.25)',
+          borderTopColor: '#6366f1',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  // ── Determine outcome ────────────────────────────────────────────────────────
-  const isDisqualified = result.disqualified === true;
-  const isTimedOut = result.timedOut === true;
-  const percentage = result.percentage ?? 0;
-  const passed = !isDisqualified && percentage >= 50;
-
-  let headline: string;
-  let subtext: string;
-  let emoji: string;
-  let headerBg: string;
-
-  if (isDisqualified) {
-    headline = 'Exam Disqualified';
-    subtext = 'You were disqualified due to excessive tab switching. Your exam session has been closed.';
-    emoji = '🚫';
-    headerBg = 'bg-red-600';
-  } else if (isTimedOut) {
-    headline = 'Time Expired';
-    subtext = 'The exam time limit was reached. Your answers have been submitted automatically.';
-    emoji = '⏰';
-    headerBg = 'bg-amber-500';
-  } else if (passed) {
-    headline = 'Exam Completed';
-    subtext = 'You have successfully completed the examination.';
-    emoji = '🎉';
-    headerBg = 'bg-emerald-600';
-  } else {
-    headline = 'Exam Completed';
-    subtext = 'You have completed the examination.';
-    emoji = '📝';
-    headerBg = 'bg-blue-600';
-  }
-
   return (
-    /* Prevent any right-click / copy on result page too */
     <div
-      className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12 select-none"
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '32px 16px',
+        userSelect: 'none',
+      }}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+      {/* Ambient glow */}
+      <div style={{
+        position: 'fixed',
+        top: '15%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 500,
+        height: 500,
+        borderRadius: '50%',
+        background: 'rgba(99,102,241,0.12)',
+        filter: 'blur(90px)',
+        pointerEvents: 'none',
+      }} />
 
-          {/* Coloured header */}
-          <div className={`${headerBg} px-6 py-8 text-white text-center`}>
-            <div className="text-5xl mb-3">{emoji}</div>
-            <h1 className="text-2xl font-bold">{headline}</h1>
-            <p className="text-white/80 text-sm mt-2 leading-relaxed">{subtext}</p>
+      {/* Card */}
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100%',
+        maxWidth: 480,
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(99,102,241,0.25)',
+        borderRadius: 24,
+        overflow: 'hidden',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1)',
+        backdropFilter: 'blur(20px)',
+      }}>
+
+        {/* Top accent bar */}
+        <div style={{
+          height: 4,
+          background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)',
+        }} />
+
+        {/* Header */}
+        <div style={{
+          padding: '40px 36px 28px',
+          textAlign: 'center',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {/* Animated checkmark circle */}
+          <div style={{
+            width: 84,
+            height: 84,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(16,185,129,0.2))',
+            border: '2px solid rgba(99,102,241,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            fontSize: '2.4rem',
+            animation: 'fadeIn 0.5s ease-out',
+          }}>
+            ✅
           </div>
 
-          {/* Score section */}
-          {!isDisqualified && (
-            <div className="px-6 py-8">
-              <ScoreRing percentage={percentage} />
+          <h1 style={{
+            fontSize: '1.6rem',
+            fontWeight: 900,
+            color: '#f1f5f9',
+            letterSpacing: '-0.04em',
+            marginBottom: 10,
+            lineHeight: 1.2,
+          }}>
+            {candidateName ? `Well done, ${candidateName.split(' ')[0]}!` : 'Exam Submitted!'}
+          </h1>
 
-              {/* Stats grid */}
-              <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {result.score ?? 0}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Correct</div>
-                </div>
-                <div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {result.totalAnswered ?? 0}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Answered</div>
-                </div>
-                <div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {result.totalQuestions ?? 0}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Total</div>
-                </div>
+          <p style={{
+            fontSize: '0.92rem',
+            color: '#64748b',
+            lineHeight: 1.65,
+            maxWidth: 340,
+            margin: '0 auto',
+          }}>
+            Your answers have been recorded and submitted successfully.
+            Your exam session is now closed.
+          </p>
+        </div>
+
+        {/* Main message */}
+        <div style={{ padding: '28px 36px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+
+          {/* Info card */}
+          <div style={{
+            background: 'rgba(99,102,241,0.07)',
+            border: '1px solid rgba(99,102,241,0.2)',
+            borderRadius: 14,
+            padding: '20px 20px',
+            display: 'flex',
+            gap: 16,
+            alignItems: 'flex-start',
+          }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              background: 'rgba(99,102,241,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.2rem',
+              flexShrink: 0,
+            }}>
+              📬
+            </div>
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#c7d2fe', marginBottom: 6 }}>
+                Results will be sent to you
               </div>
-
-              {/* Result banner */}
-              <div className={`mt-6 rounded-xl px-4 py-3 text-center text-sm font-semibold ${
-                passed
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                {passed ? '✅ Result: PASS' : '❌ Result: FAIL'}
+              <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.6 }}>
+                The exam administrator will review your submission and
+                send your official result to you via email or WhatsApp.
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Disqualified message */}
-          {isDisqualified && (
-            <div className="px-6 py-8 text-center">
-              <p className="text-sm text-gray-500 leading-relaxed">
-                Your result has been recorded as <strong>disqualified</strong>.
-                Please contact the exam administrator if you believe this is an error.
-              </p>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="px-6 pb-6">
-            <div className="border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-              <p>This window is read-only. Your result has been saved.</p>
-              <p className="mt-1">You may close this tab.</p>
-            </div>
+          {/* What happens next */}
+          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { icon: '🔍', text: 'Administrator reviews and generates your result' },
+              { icon: '📄', text: 'A result certificate is prepared with your score' },
+              { icon: '📲', text: 'Results sent to you via email or WhatsApp' },
+            ].map(({ icon, text }) => (
+              <div key={text} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: '0.8rem',
+                color: '#475569',
+              }}>
+                <span style={{ fontSize: '1rem', width: 24, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+                {text}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Watermark */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Arbitration Sandbox — Secure Examination Platform
-        </p>
+        {/* Footer */}
+        <div style={{
+          padding: '20px 36px',
+          textAlign: 'center',
+        }}>
+          <p style={{
+            fontSize: '0.72rem',
+            color: '#334155',
+            lineHeight: 1.7,
+          }}>
+            Your session is complete. You may safely close this window.
+            <br />
+            Do not attempt to re-open the exam link.
+          </p>
+        </div>
       </div>
+
+      {/* Branding */}
+      <p style={{
+        position: 'relative',
+        zIndex: 1,
+        marginTop: 28,
+        fontSize: '0.68rem',
+        color: '#1e293b',
+        letterSpacing: '0.08em',
+        textAlign: 'center',
+      }}>
+        ARBITRATION SANDBOX · SECURE EXAMINATION PLATFORM
+      </p>
+
+      <style>{`
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        @keyframes fadeIn  { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+      `}</style>
     </div>
   );
 }

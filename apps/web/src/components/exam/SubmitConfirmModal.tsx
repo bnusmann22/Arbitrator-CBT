@@ -18,75 +18,208 @@ export default function SubmitConfirmModal({
   isSubmitting = false,
 }: SubmitConfirmModalProps) {
   const unanswered = totalQuestions - answeredCount;
+  const pct = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+  const allAnswered = unanswered === 0;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="confirm-title"
+      aria-labelledby="submit-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(6px)',
+        padding: 16,
+      }}
     >
-      <div className="w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div style={{
+        width: '100%',
+        maxWidth: 400,
+        background: '#fff',
+        borderRadius: 20,
+        overflow: 'hidden',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+        animation: 'slideUp 0.2s ease-out',
+      }}>
+
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-5 text-white">
-          <h2 id="confirm-title" className="text-lg font-bold">
+        <div style={{
+          padding: '24px 24px 20px',
+          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+          textAlign: 'center',
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: 10 }}>📋</div>
+          <h2 id="submit-title" style={{
+            fontSize: '1.15rem',
+            fontWeight: 800,
+            color: '#f1f5f9',
+            marginBottom: 4,
+          }}>
             Submit Exam?
           </h2>
-          <p className="text-blue-100 text-sm mt-1">
-            This action cannot be undone.
+          <p style={{ fontSize: '0.78rem', color: '#64748b' }}>
+            This action is final and cannot be undone.
           </p>
         </div>
 
-        {/* Summary */}
-        <div className="p-6">
-          <div className="flex justify-around mb-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-emerald-600">{answeredCount}</div>
-              <div className="text-xs text-gray-500 mt-1">Answered</div>
+        <div style={{ padding: '24px' }}>
+
+          {/* Progress ring + stats */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 20,
+            padding: '16px',
+            background: '#f8fafc',
+            borderRadius: 14,
+            border: '1px solid #e2e8f0',
+            marginBottom: 16,
+          }}>
+            {/* Ring */}
+            <div style={{ flexShrink: 0 }}>
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="#e2e8f0" strokeWidth="5" />
+                <circle
+                  cx="32" cy="32" r="26"
+                  fill="none"
+                  stroke={allAnswered ? '#10b981' : '#f59e0b'}
+                  strokeWidth="5"
+                  strokeDasharray={`${(pct / 100) * 163.4} 163.4`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 32 32)"
+                  style={{ transition: 'stroke-dasharray 0.4s ease' }}
+                />
+                <text x="32" y="37" textAnchor="middle" fontSize="13" fontWeight="800" fill="#1e293b">
+                  {pct}%
+                </text>
+              </svg>
             </div>
-            <div className="w-px bg-gray-200" />
-            <div className="text-center">
-              <div className={`text-3xl font-bold ${unanswered > 0 ? 'text-amber-500' : 'text-gray-300'}`}>
-                {unanswered}
+
+            {/* Stats */}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Answered</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#10b981' }}>{answeredCount}</span>
               </div>
-              <div className="text-xs text-gray-500 mt-1">Unanswered</div>
-            </div>
-            <div className="w-px bg-gray-200" />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gray-700">{totalQuestions}</div>
-              <div className="text-xs text-gray-500 mt-1">Total</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Unanswered</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: unanswered > 0 ? '#f59e0b' : '#94a3b8' }}>
+                  {unanswered}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Total</span>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>{totalQuestions}</span>
+              </div>
             </div>
           </div>
 
+          {/* Warning banner */}
           {unanswered > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 text-sm text-amber-700">
-              ⚠️ You have <strong>{unanswered}</strong> unanswered question{unanswered > 1 ? 's' : ''}.
-              Unanswered questions will be marked as incorrect.
+            <div style={{
+              padding: '12px 14px',
+              background: 'rgba(245,158,11,0.08)',
+              border: '1px solid rgba(245,158,11,0.3)',
+              borderRadius: 10,
+              marginBottom: 20,
+              fontSize: '0.78rem',
+              color: '#d97706',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              lineHeight: 1.5,
+            }}>
+              <span style={{ flexShrink: 0 }}>⚠</span>
+              <span>
+                {unanswered} question{unanswered > 1 ? 's' : ''} left unanswered.
+                Unanswered questions count as incorrect.
+              </span>
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="flex gap-3">
+          {allAnswered && (
+            <div style={{
+              padding: '12px 14px',
+              background: 'rgba(16,185,129,0.08)',
+              border: '1px solid rgba(16,185,129,0.3)',
+              borderRadius: 10,
+              marginBottom: 20,
+              fontSize: '0.78rem',
+              color: '#059669',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              <span>✅</span>
+              All questions answered — you&apos;re ready to submit!
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={onCancel}
               disabled={isSubmitting}
-              className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: '#fff',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: 12,
+                color: '#475569',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.5 : 1,
+                transition: 'all 0.15s',
+              }}
             >
               Continue Exam
             </button>
+
             <button
               onClick={onConfirm}
               disabled={isSubmitting}
-              className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: isSubmitting
+                  ? '#e2e8f0'
+                  : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                border: 'none',
+                borderRadius: 12,
+                color: isSubmitting ? '#94a3b8' : '#fff',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                boxShadow: isSubmitting ? 'none' : '0 4px 16px rgba(99,102,241,0.4)',
+                transition: 'all 0.15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
             >
               {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
+                <>
+                  <div style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid #94a3b8',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 0.6s linear infinite',
+                  }} />
                   Submitting…
-                </span>
+                </>
               ) : (
                 'Submit Now'
               )}
@@ -94,6 +227,16 @@ export default function SubmitConfirmModal({
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

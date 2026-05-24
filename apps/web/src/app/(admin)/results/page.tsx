@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminNav from '@/components/admin/AdminNav';
 import api from '@/lib/api';
 import styles from './page.module.css';
+import { generateResultPdf, type ResultData } from '@/lib/generateResultPdf';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,7 @@ export default function ResultsPage() {
   const [search, setSearch]             = useState('');
   const [sortBy, setSortBy]             = useState<SortKey>('score');
   const [sortDir, setSortDir]           = useState<'asc' | 'desc'>('desc');
+  const [pdfLoading, setPdfLoading]     = useState<string | null>(null); // candidateId being generated
 
   // ── Load exams ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -222,6 +224,19 @@ export default function ResultsPage() {
       else if (sortBy === 'tabSwitchCount') cmp = a.tabSwitchCount - b.tabSwitchCount;
       return sortDir === 'asc' ? cmp : -cmp;
     });
+
+  // ── PDF generation ───────────────────────────────────────────────────────────
+  const handleGeneratePdf = useCallback(async (candidateId: string) => {
+    setPdfLoading(candidateId);
+    try {
+      const data = (await api.get(`/admin/results/${candidateId}`)) as ResultData;
+      generateResultPdf(data);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to generate result PDF.');
+    } finally {
+      setPdfLoading(null);
+    }
+  }, []);
 
   const toggleSort = (col: SortKey) => {
     if (sortBy === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -309,13 +324,13 @@ export default function ResultsPage() {
 
               <div className={styles.statCard}>
                 <div className={`${styles.statIcon} ${styles.blue}`}>📤</div>
-                <div className={`${styles.statValue} ${styles.blue}`}>{submitted.length}</div>
+                <div className={styles.statValueBlue}>{submitted.length}</div>
                 <div className={styles.statLabel}>Submitted</div>
               </div>
 
               <div className={styles.statCard}>
                 <div className={`${styles.statIcon} ${styles.green}`}>📊</div>
-                <div className={`${styles.statValue} ${styles.green}`}>
+                <div className={styles.statValueGreen}>
                   {avgScore !== null ? `${avgScore}%` : '—'}
                 </div>
                 <div className={styles.statLabel}>Average Score</div>
@@ -323,7 +338,7 @@ export default function ResultsPage() {
 
               <div className={styles.statCard}>
                 <div className={`${styles.statIcon} ${styles.amber}`}>✅</div>
-                <div className={`${styles.statValue} ${styles.amber}`}>
+                <div className={styles.statValueAmber}>
                   {submitted.length > 0
                     ? `${Math.round((passCount / submitted.length) * 100)}%`
                     : '—'}
@@ -333,7 +348,7 @@ export default function ResultsPage() {
 
               <div className={styles.statCard}>
                 <div className={`${styles.statIcon} ${styles.red}`}>🚫</div>
-                <div className={`${styles.statValue} ${styles.red}`}>{disqualified.length}</div>
+                <div className={styles.statValueRed}>{disqualified.length}</div>
                 <div className={styles.statLabel}>Disqualified</div>
               </div>
             </div>
@@ -427,67 +442,101 @@ export default function ResultsPage() {
                   <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th style={{ width: 48 }}>Rank</th>
-                        <th
-                          className={styles.sortable}
-                          onClick={() => toggleSort('name')}
-                        >
+                        <th className={styles.th} style={{ width: 48 }}>Rank</th>
+                        <th className={styles.thSortable} onClick={() => toggleSort('name')}>
                           Candidate <SortIcon col="name" />
                         </th>
-                        <th>Code</th>
-                        <th
-                          className={styles.sortable}
-                          onClick={() => toggleSort('status')}
-                        >
+                        <th className={styles.th}>Code</th>
+                        <th className={styles.thSortable} onClick={() => toggleSort('status')}>
                           Status <SortIcon col="status" />
                         </th>
-                        <th
-                          className={styles.sortable}
-                          onClick={() => toggleSort('score')}
-                          style={{ minWidth: 100 }}
-                        >
+                        <th className={styles.thSortable} onClick={() => toggleSort('score')} style={{ minWidth: 100 }}>
                           Score <SortIcon col="score" />
                         </th>
-                        <th style={{ textAlign: 'center' }}>Answered</th>
-                        <th
-                          className={styles.sortable}
-                          style={{ textAlign: 'center' }}
-                          onClick={() => toggleSort('tabSwitchCount')}
-                        >
+                        <th className={styles.th} style={{ textAlign: 'center' }}>Answered</th>
+                        <th className={styles.thSortable} style={{ textAlign: 'center' }} onClick={() => toggleSort('tabSwitchCount')}>
                           Tab Sw. <SortIcon col="tabSwitchCount" />
                         </th>
-                        <th>Submitted At</th>
+                        <th className={styles.th}>Submitted At</th>
+                        <th className={styles.th} style={{ textAlign: 'center' }}>Result PDF</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.map((c, i) => (
-                        <tr key={c.id}>
-                          <td>
+                        <tr key={c.id} className={styles.tr}>
+                          <td className={styles.td}>
                             <RankCell index={i} candidates={filtered} />
                           </td>
-                          <td>
+                          <td className={styles.td}>
                             <div className={styles.candidateName}>{c.name}</div>
                             <div className={styles.candidateEmail}>{c.email}</div>
                           </td>
-                          <td>
+                          <td className={styles.td}>
                             <span className={styles.code}>{c.examCode}</span>
                           </td>
-                          <td>
+                          <td className={styles.td}>
                             <StatusBadge status={c.status} />
                           </td>
-                          <td>
+                          <td className={styles.td}>
                             <ScoreCell score={c.score} status={c.status} />
                           </td>
-                          <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                          <td className={styles.td} style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                             {c.totalAnswered !== undefined && c.totalAnswered !== null
                               ? `${c.totalAnswered} / ${selectedExam.questionCount}`
                               : '—'}
                           </td>
-                          <td style={{ textAlign: 'center' }}>
+                          <td className={styles.td} style={{ textAlign: 'center' }}>
                             <TabSwitchCell count={c.tabSwitchCount} />
                           </td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                          <td className={styles.td} style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
                             {formatDate(c.submittedAt)}
+                          </td>
+                          <td className={styles.td} style={{ textAlign: 'center' }}>
+                            {(c.status === 'submitted' || c.status === 'disqualified') ? (
+                              <button
+                                onClick={() => void handleGeneratePdf(c.id)}
+                                disabled={pdfLoading === c.id}
+                                title="Download result PDF"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 5,
+                                  padding: '5px 11px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  borderRadius: 7,
+                                  border: 'none',
+                                  cursor: pdfLoading === c.id ? 'not-allowed' : 'pointer',
+                                  background: pdfLoading === c.id
+                                    ? 'var(--bg-tertiary)'
+                                    : 'hsla(250,90%,65%,0.15)',
+                                  color: pdfLoading === c.id
+                                    ? 'var(--text-muted)'
+                                    : 'var(--accent-primary)',
+                                  border: '1px solid hsla(250,90%,65%,0.3)' as string,
+                                  transition: 'all 0.15s',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {pdfLoading === c.id ? (
+                                  <>
+                                    <span style={{
+                                      width: 10, height: 10,
+                                      border: '2px solid currentColor',
+                                      borderTopColor: 'transparent',
+                                      borderRadius: '50%',
+                                      display: 'inline-block',
+                                      animation: 'spin 0.6s linear infinite',
+                                    }} />
+                                    Generating…
+                                  </>
+                                ) : (
+                                  <>📄 PDF</>
+                                )}
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -499,6 +548,7 @@ export default function ResultsPage() {
           </>
         )}
       </main>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

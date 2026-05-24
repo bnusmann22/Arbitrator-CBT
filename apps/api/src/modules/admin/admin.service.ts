@@ -136,6 +136,77 @@ export class AdminService {
     };
   }
 
+  // ── Candidate Result Report ───────────────────────────────────────────────
+  //    Returns everything needed to generate the admin PDF result sheet.
+
+  async getCandidateResult(candidateId: string) {
+    // 1. Candidate doc
+    const candSnap = await this.db.collection('candidates').doc(candidateId).get();
+    if (!candSnap.exists) {
+      throw new NotFoundException(`Candidate ${candidateId} not found.`);
+    }
+    const cand = candSnap.data()!;
+
+    // 2. Session doc (contains the per-question answers)
+    const sessionSnap = await this.db
+      .collection('exam_sessions')
+      .doc(candidateId)
+      .get();
+
+    const answers: Record<string, string | null> = sessionSnap.exists
+      ? (sessionSnap.data()!.answers ?? {})
+      : {};
+
+    // 3. Exam doc
+    const examId = cand.examId as string;
+    const examSnap = await this.db.collection('exams').doc(examId).get();
+    const exam = examSnap.exists ? examSnap.data()! : {};
+
+    // 4. Questions (with correct answers — admin only)
+    const questionsSnap = await this.db
+      .collection('exams')
+      .doc(examId)
+      .collection('questions')
+      .get();
+
+    const questions = questionsSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+      .map((q: any, idx: number) => {
+        const candidateAnswer = answers[q.id] ?? null;
+        return {
+          number:          idx + 1,
+          questionText:    q.questionText as string,
+          options:         q.options as Record<string, string>,
+          correctAnswer:   q.correctAnswer as string,
+          candidateAnswer,
+          isCorrect:       candidateAnswer !== null && candidateAnswer === q.correctAnswer,
+        };
+      });
+
+    return {
+      candidate: {
+        id:             candidateId,
+        name:           cand.name,
+        email:          cand.email,
+        examCode:       cand.examCode,
+        status:         cand.status,
+        score:          cand.score ?? 0,
+        totalAnswered:  cand.totalAnswered ?? 0,
+        tabSwitchCount: cand.tabSwitchCount ?? 0,
+        startedAt:      cand.startedAt?.toDate?.()?.toISOString() ?? null,
+        submittedAt:    cand.submittedAt?.toDate?.()?.toISOString() ?? null,
+      },
+      exam: {
+        id:              examId,
+        title:           exam.title ?? 'Exam',
+        durationMinutes: exam.durationMinutes ?? 0,
+        totalQuestions:  questionsSnap.docs.length,
+      },
+      questions,
+    };
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   private docToExam(id: string, data: admin.firestore.DocumentData): ExamDoc {

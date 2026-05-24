@@ -146,10 +146,10 @@
   margin-bottom: 4px;
 }
 
-.statValue.green { color: var(--accent-success); }
-.statValue.blue  { color: var(--accent-secondary); }
-.statValue.amber { color: var(--accent-warning); }
-.statValue.red   { color: var(--accent-danger); }
+.statValueGreen { font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; color: var(--accent-success); }
+.statValueBlue  { font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; color: var(--accent-secondary); }
+.statValueAmber { font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; color: var(--accent-warning); }
+.statValueRed   { font-size: var(--text-2xl); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; color: var(--accent-danger); }
 
 .statLabel {
   font-size: var(--text-xs);
@@ -289,10 +289,19 @@
 }
 
 .exportBtn {
-  composes: toolbarBtn;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
   background: hsla(152, 70%, 50%, 0.1);
-  border-color: hsla(152, 70%, 50%, 0.3);
+  border: 1px solid hsla(152, 70%, 50%, 0.3);
+  border-radius: var(--radius-lg);
   color: var(--accent-success);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .exportBtn:hover {
@@ -312,7 +321,7 @@
   font-size: var(--text-sm);
 }
 
-.table th {
+.th {
   background: var(--bg-tertiary);
   padding: 10px 16px;
   text-align: left;
@@ -326,27 +335,35 @@
   cursor: default;
 }
 
-.table th.sortable {
+.thSortable {
+  background: var(--bg-tertiary);
+  padding: 10px 16px;
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-primary);
+  white-space: nowrap;
   cursor: pointer;
   user-select: none;
 }
 
-.table th.sortable:hover { color: var(--text-primary); }
+.thSortable:hover { color: var(--text-primary); }
 
-.table td {
+.td {
   padding: 12px 16px;
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
-.table tr:last-child td { border-bottom: none; }
-
-.table tbody tr {
+.tr {
   transition: background var(--transition-fast);
 }
 
-.table tbody tr:hover td { background: var(--bg-glass-hover); }
+.tr:hover .td { background: var(--bg-glass-hover); }
 
 /* ── Rank cell ────────────────────────────────────────── */
 

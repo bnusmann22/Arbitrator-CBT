@@ -12,8 +12,7 @@ interface ExamHeaderProps {
   onSubmit: () => void;
 }
 
-const TAB_WARNING_THRESHOLD = 3;   // yellow warning
-const TAB_DISQUALIFY_THRESHOLD = 5; // red / disqualify
+const MAX_SWITCHES = 5;
 
 export default function ExamHeader({
   examTitle,
@@ -24,73 +23,152 @@ export default function ExamHeader({
   tabSwitchCount,
   onSubmit,
 }: ExamHeaderProps) {
-  // Colour of the timer based on time remaining
-  const timerColour =
-    secondsLeft <= 60
-      ? 'text-red-600 animate-pulse'
-      : secondsLeft <= 300
-      ? 'text-amber-600'
-      : 'text-emerald-700';
+  const progressPct = totalQuestions > 0
+    ? Math.round((answeredCount / totalQuestions) * 100)
+    : 0;
 
-  // Colour of the tab-switch badge
-  const tabBadgeColour =
-    tabSwitchCount === 0
-      ? 'bg-gray-100 text-gray-600'
-      : tabSwitchCount < TAB_WARNING_THRESHOLD
-      ? 'bg-yellow-100 text-yellow-700'
-      : tabSwitchCount < TAB_DISQUALIFY_THRESHOLD
-      ? 'bg-orange-100 text-orange-700 font-semibold'
-      : 'bg-red-100 text-red-700 font-bold';
+  const timerCritical = secondsLeft <= 60;
+  const timerWarning  = secondsLeft <= 300 && !timerCritical;
+
+  const timerStyle: React.CSSProperties = {
+    fontFamily: 'var(--font-mono, monospace)',
+    fontSize: '1.35rem',
+    fontWeight: 800,
+    letterSpacing: '-0.02em',
+    tabularNums: true,
+    color: timerCritical
+      ? '#ef4444'
+      : timerWarning
+      ? '#f59e0b'
+      : '#10b981',
+    animation: timerCritical ? 'pulse 1s infinite' : 'none',
+  } as React.CSSProperties;
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-4">
+    <header style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 40,
+      background: '#0f172a',
+      borderBottom: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+    }}>
+      {/* Main bar */}
+      <div style={{
+        maxWidth: 1100,
+        margin: '0 auto',
+        padding: '0 24px',
+        height: 64,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+      }}>
 
-        {/* Title */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Exam in Progress</p>
-          <h1 className="text-base font-semibold text-gray-900 truncate">
+        {/* Exam label + title */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Exam in Progress
+          </div>
+          <div style={{
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            color: '#f1f5f9',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
             {examTitle ?? 'Arbitration Sandbox'}
-          </h1>
+          </div>
         </div>
 
         {/* Progress */}
-        <div className="flex items-center gap-1 text-sm text-gray-600">
-          <span className="font-medium text-gray-900">{answeredCount}</span>
-          <span>/</span>
-          <span>{totalQuestions}</span>
-          <span className="ml-1 text-gray-400">answered</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            <span style={{ fontWeight: 700, color: '#10b981', fontSize: '0.95rem' }}>{answeredCount}</span>
+            <span style={{ color: '#475569' }}> / {totalQuestions}</span>
+          </div>
+          <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            answered
+          </div>
         </div>
 
-        {/* Tab switch warning */}
+        {/* Divider */}
+        <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.08)' }} />
+
+        {/* Tab switch badge */}
         {tabSwitchCount > 0 && (
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs ${tabBadgeColour}`}>
-            ⚠️ {tabSwitchCount} / {TAB_DISQUALIFY_THRESHOLD} tab switches
-          </span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 12px',
+            borderRadius: 999,
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            background: tabSwitchCount >= MAX_SWITCHES - 1
+              ? 'rgba(239,68,68,0.15)'
+              : 'rgba(245,158,11,0.12)',
+            color: tabSwitchCount >= MAX_SWITCHES - 1
+              ? '#f87171'
+              : '#fbbf24',
+            border: `1px solid ${
+              tabSwitchCount >= MAX_SWITCHES - 1
+                ? 'rgba(239,68,68,0.3)'
+                : 'rgba(245,158,11,0.25)'
+            }`,
+          }}>
+            <span>⚠</span>
+            {tabSwitchCount} / {MAX_SWITCHES} switches
+          </div>
         )}
 
         {/* Timer */}
-        <div className={`font-mono text-xl font-bold tabular-nums ${timerColour}`}>
+        <div style={timerStyle}>
           {timeFormatted}
         </div>
+
+        {/* Divider */}
+        <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.08)' }} />
 
         {/* Submit button */}
         <button
           onClick={onSubmit}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          style={{
+            padding: '8px 20px',
+            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 10,
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            letterSpacing: '0.02em',
+            boxShadow: '0 0 20px rgba(99,102,241,0.35)',
+            transition: 'opacity 0.15s, transform 0.15s',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = '0.88';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = '1';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+          }}
         >
           Submit Exam
         </button>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 bg-gray-100">
+      <div style={{ height: 3, background: 'rgba(255,255,255,0.05)' }}>
         <div
-          className="h-full bg-blue-500 transition-all duration-500"
           style={{
-            width: totalQuestions > 0
-              ? `${Math.round((answeredCount / totalQuestions) * 100)}%`
-              : '0%',
+            height: '100%',
+            width: `${progressPct}%`,
+            background: 'linear-gradient(90deg, #6366f1, #10b981)',
+            transition: 'width 0.5s ease',
+            borderRadius: '0 2px 2px 0',
           }}
         />
       </div>

@@ -67,4 +67,11 @@ export class AdminController {
   async deleteExam(@Param('id') id: string) {
     await this.adminService.deleteExam(id);
   }
+
+  // ── Candidate Result Report ───────────────────────────────────────────────
+
+  @Get('results/:candidateId')
+  async getCandidateResult(@Param('candidateId') candidateId: string) {
+    return this.adminService.getCandidateResult(candidateId);
+  }
 }
