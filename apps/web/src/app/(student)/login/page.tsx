@@ -121,8 +121,9 @@ export default function CandidateLoginPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 35000);
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/candidate/login`,
+        `${apiBase}/auth/candidate/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

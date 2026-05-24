@@ -122,8 +122,9 @@ export default function AdminLoginPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 35000);
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/admin/login`,
+        `${apiBase}/auth/admin/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
