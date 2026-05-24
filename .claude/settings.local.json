@@ -22,7 +22,8 @@
       "Bash(git push *)",
       "Bash(git add *)",
       "Bash(git commit -m 'fix\\(types\\): point main and types fields to dist output *)",
-      "PowerShell(Invoke-RestMethod -Uri \"https://arbitrator-cbt-production.up.railway.app/api/health\" -Method Get)"
+      "PowerShell(Invoke-RestMethod -Uri \"https://arbitrator-cbt-production.up.railway.app/api/health\" -Method Get)",
+      "Bash(git commit -m 'fix\\(web\\): strip trailing slash from NEXT_PUBLIC_API_URL to prevent //path *)"
     ]
   }
 }
