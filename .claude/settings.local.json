@@ -10,7 +10,9 @@
       "Bash(Test-Path \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\node_modules\")",
       "PowerShell(npm --version)",
       "Bash(node -e \"const t = require\\('tesseract.js'\\); console.log\\(typeof t.recognize\\);\")",
-      "WebFetch(domain:arbitration-sandbox-api.fly.dev)"
+      "WebFetch(domain:arbitration-sandbox-api.fly.dev)",
+      "PowerShell(git -C \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\" rm fly.toml)",
+      "PowerShell(git -C \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\" status)"
     ]
   }
 }
