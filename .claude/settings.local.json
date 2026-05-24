@@ -26,7 +26,16 @@
       "Bash(git commit -m 'fix\\(web\\): strip trailing slash from NEXT_PUBLIC_API_URL to prevent //path *)",
       "mcp__claude_ai_Vercel__get_project",
       "mcp__claude_ai_Vercel__list_deployments",
-      "Bash(git commit --allow-empty -m 'chore\\(web\\): trigger redeploy with corrected NEXT_PUBLIC_API_URL *)"
+      "Bash(git commit --allow-empty -m 'chore\\(web\\): trigger redeploy with corrected NEXT_PUBLIC_API_URL *)",
+      "Bash(npx vercel *)",
+      "Bash(cd \"c:/Users/admin/Desktop/Arbitration_Sandbox/apps/web\" && npx vercel env pull --environment=production /tmp/vercel-env-check.txt 2>&1 && grep NEXT_PUBLIC_API_URL /tmp/vercel-env-check.txt)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\auth\\\\[type]\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\proxy\\\\[...path]\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\admin\\Desktop\\Arbitration_Sandbox\\apps\\web\\src\\app\\api\\auth",
+      "c:\\Users\\admin\\Desktop\\Arbitration_Sandbox\\apps\\web\\src\\app\\api\\proxy"
     ]
   }
 }
