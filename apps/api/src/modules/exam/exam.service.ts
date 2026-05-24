@@ -421,20 +421,27 @@ export class ExamService {
   async autoSubmitExpired() {
     const now = admin.firestore.Timestamp.now();
 
-    const expiredSnap = await this.db
+    // Combining an equality filter (submitted) with an inequality filter
+    // (endTime) on different fields requires a composite Firestore index.
+    // Query only by the equality filter and do the time comparison in memory.
+    const unsubmittedSnap = await this.db
       .collection('exam_sessions')
       .where('submitted', '==', false)
-      .where('endTime', '<=', now)
       .get();
 
-    if (expiredSnap.empty) return;
+    const expiredDocs = unsubmittedSnap.docs.filter((doc) => {
+      const data = doc.data() as SessionDoc;
+      return data.endTime.toMillis() <= now.toMillis();
+    });
+
+    if (expiredDocs.length === 0) return;
 
     this.logger.log(
-      `Auto-submit cron: ${expiredSnap.docs.length} expired session(s) found.`,
+      `Auto-submit cron: ${expiredDocs.length} expired session(s) found.`,
     );
 
     const results = await Promise.allSettled(
-      expiredSnap.docs.map(async (doc) => {
+      expiredDocs.map(async (doc) => {
         const { candidateId } = doc.data() as SessionDoc;
         await this.submitExam(candidateId, 'auto');
       }),

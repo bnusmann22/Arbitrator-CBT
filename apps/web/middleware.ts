@@ -27,7 +27,7 @@ const COOKIE_NAME = 'auth_token';
 const CANDIDATE_ROUTES = ['/exam'];
 
 /** Routes that require a logged-in admin */
-const ADMIN_ROUTES = ['/dashboard', '/questions', '/candidates', '/results'];
+const ADMIN_ROUTES = ['/dashboard', '/questions', '/candidates', '/results', '/admin/dashboard'];
 
 /** Public routes — always accessible */
 const PUBLIC_ROUTES = ['/login', '/admin/login', '/', '/api'];

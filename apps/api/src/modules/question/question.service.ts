@@ -58,13 +58,20 @@ export class QuestionService {
       throw new NotFoundException(`Exam ${examId} not found.`);
     }
 
-    // Upload raw file to Firebase Storage
+    // Upload raw file to Firebase Storage (best-effort — won't block parsing
+    // if the Storage bucket hasn't been provisioned yet).
     const storagePath = `question-files/${examId}/${Date.now()}-${file.originalname}`;
-    const storageFile = this.bucket.file(storagePath);
-    await storageFile.save(file.buffer, {
-      metadata: { contentType: file.mimetype },
-    });
-    this.logger.log(`Uploaded source file: ${storagePath}`);
+    try {
+      const storageFile = this.bucket.file(storagePath);
+      await storageFile.save(file.buffer, {
+        metadata: { contentType: file.mimetype },
+      });
+      this.logger.log(`Uploaded source file: ${storagePath}`);
+    } catch (storageErr) {
+      this.logger.warn(
+        `Storage upload skipped (bucket not available): ${(storageErr as Error).message}`,
+      );
+    }
 
     // Extract text
     let rawText: string;

@@ -15,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      {/* suppressHydrationWarning prevents false positives from browser extensions
+          that inject attributes (e.g. data-my-extension) into <body> before React hydrates */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

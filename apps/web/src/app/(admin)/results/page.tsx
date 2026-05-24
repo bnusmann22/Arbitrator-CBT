@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AdminNav from '@/components/admin/AdminNav';
 import api from '@/lib/api';
+import styles from './page.module.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -11,6 +12,7 @@ interface Exam {
   title: string;
   status: string;
   durationMinutes: number;
+  questionCount: number;
   candidateCount?: number;
 }
 
@@ -27,24 +29,9 @@ interface Candidate {
   examCode: string;
 }
 
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  registered:    { label: 'Registered',    cls: 'bg-gray-100 text-gray-600' },
-  'in-progress': { label: 'In Progress',   cls: 'bg-blue-100 text-blue-700' },
-  submitted:     { label: 'Submitted',     cls: 'bg-emerald-100 text-emerald-700' },
-  disqualified:  { label: 'Disqualified',  cls: 'bg-red-100 text-red-700' },
-};
+type SortKey = 'name' | 'score' | 'status' | 'tabSwitchCount';
 
-function ScoreBadge({ score, status }: { score?: number; status: string }) {
-  if (status === 'disqualified') {
-    return <span className="text-sm font-medium text-red-600">DQ</span>;
-  }
-  if (score === undefined || score === null || status === 'registered' || status === 'in-progress') {
-    return <span className="text-sm text-gray-400">—</span>;
-  }
-  const colour =
-    score >= 70 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600';
-  return <span className={`text-sm font-bold ${colour}`}>{score}%</span>;
-}
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatDate(iso?: string): string {
   if (!iso) return '—';
@@ -54,39 +41,139 @@ function formatDate(iso?: string): string {
   });
 }
 
+function scoreColour(score: number): 'high' | 'mid' | 'low' {
+  if (score >= 70) return 'high';
+  if (score >= 50) return 'mid';
+  return 'low';
+}
+
+function exportCsv(candidates: Candidate[], examTitle: string) {
+  const header = ['Rank', 'Name', 'Email', 'Code', 'Status', 'Score (%)', 'Answered', 'Tab Switches', 'Submitted At'];
+  const sorted = [...candidates]
+    .filter((c) => c.status === 'submitted')
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  const rows = candidates.map((c) => {
+    const rank = sorted.findIndex((s) => s.id === c.id) + 1;
+    return [
+      c.status === 'submitted' ? rank || '' : '',
+      c.name,
+      c.email,
+      c.examCode,
+      c.status,
+      c.score !== undefined && c.score !== null ? c.score : '',
+      c.totalAnswered !== undefined ? c.totalAnswered : '',
+      c.tabSwitchCount,
+      c.submittedAt ? new Date(c.submittedAt).toLocaleString() : '',
+    ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',');
+  });
+
+  const csv = [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${examTitle.replace(/\s+/g, '_')}_results.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string; dot: string }> = {
+    registered:    { label: 'Registered',   cls: styles.badge + ' ' + styles.registered,    dot: '○' },
+    'in-progress': { label: 'In Progress',  cls: styles.badge + ' ' + styles.inProgress,    dot: '●' },
+    submitted:     { label: 'Submitted',    cls: styles.badge + ' ' + styles.submitted,     dot: '✓' },
+    disqualified:  { label: 'Disqualified', cls: styles.badge + ' ' + styles.disqualified,  dot: '✕' },
+  };
+  const cfg = map[status] ?? { label: status, cls: styles.badge + ' ' + styles.registered, dot: '○' };
+  return <span className={cfg.cls}>{cfg.dot} {cfg.label}</span>;
+}
+
+function ScoreCell({ score, status }: { score?: number; status: string }) {
+  if (status === 'disqualified') {
+    return <span className={`${styles.scoreValue} ${styles.dq}`}>DQ</span>;
+  }
+  if (score === undefined || score === null || status === 'registered' || status === 'in-progress') {
+    return <span className={`${styles.scoreValue} ${styles.muted}`}>—</span>;
+  }
+  const col = scoreColour(score);
+  return (
+    <div className={styles.scoreCell}>
+      <span className={`${styles.scoreValue} ${styles[col]}`}>{score}%</span>
+      <div className={styles.scoreMiniBar}>
+        <div
+          className={`${styles.scoreMiniBarFill} ${styles[col]}`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TabSwitchCell({ count }: { count: number }) {
+  const cls = count >= 4 ? styles.danger : count >= 2 ? styles.warn : styles.safe;
+  const icon = count >= 4 ? '⚠' : count >= 2 ? '⚠' : '';
+  return (
+    <span className={`${styles.tabCount} ${cls}`}>
+      {icon && <span style={{ fontSize: '0.7rem' }}>{icon}</span>}
+      {count}
+    </span>
+  );
+}
+
+function RankCell({ index, candidates }: { index: number; candidates: Candidate[] }) {
+  // Only rank submitted candidates by score
+  const submitted = [...candidates]
+    .filter((c) => c.status === 'submitted' && c.score !== undefined)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  const candidate = candidates[index];
+  if (candidate.status !== 'submitted') {
+    return <span className={styles.rank}>—</span>;
+  }
+
+  const rank = submitted.findIndex((c) => c.id === candidate.id) + 1;
+  if (rank === 1) return <span className={styles.medal}>🥇</span>;
+  if (rank === 2) return <span className={styles.medal}>🥈</span>;
+  if (rank === 3) return <span className={styles.medal}>🥉</span>;
+  return <span className={styles.rank}>{rank}</span>;
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ResultsPage() {
-  const [exams, setExams]           = useState<Exam[]>([]);
+  const [exams, setExams]               = useState<Exam[]>([]);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [candLoading, setCandLoading] = useState(false);
-  const [search, setSearch]         = useState('');
-  const [sortBy, setSortBy]         = useState<'name' | 'score' | 'status'>('score');
-  const [sortDir, setSortDir]       = useState<'asc' | 'desc'>('desc');
+  const [candidates, setCandidates]     = useState<Candidate[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [candLoading, setCandLoading]   = useState(false);
+  const [search, setSearch]             = useState('');
+  const [sortBy, setSortBy]             = useState<SortKey>('score');
+  const [sortDir, setSortDir]           = useState<'asc' | 'desc'>('desc');
 
-  // ── Load exams ─────────────────────────────────────────────────────────────
+  // ── Load exams ──────────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
       try {
-        const data = (await api.get('/admin/exams')) as Exam[];
-        setExams(data);
-        if (data.length > 0) setSelectedExam(data[0]);
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-      }
+        const data = (await api.get('/admin/exams')) as unknown;
+        const raw = Array.isArray(data) ? data : ((data as { data?: unknown })?.data ?? []);
+        const list = Array.isArray(raw) ? (raw as Exam[]) : [];
+        setExams(list);
+        if (list.length > 0) setSelectedExam(list[0]);
+      } catch { /* ignore */ }
+      finally { setLoading(false); }
     })();
   }, []);
 
-  // ── Load candidates for selected exam ─────────────────────────────────────
+  // ── Load candidates ─────────────────────────────────────────────────────────
   const loadCandidates = useCallback(async (examId: string) => {
     setCandLoading(true);
     try {
-      const data = (await api.get(`/candidates?examId=${examId}`)) as Candidate[];
-      setCandidates(data);
+      const data = (await api.get(`/candidates?examId=${examId}`)) as unknown;
+      const raw = Array.isArray(data) ? data : ((data as { data?: unknown })?.data ?? []);
+      setCandidates(Array.isArray(raw) ? (raw as Candidate[]) : []);
     } catch {
       setCandidates([]);
     } finally {
@@ -98,7 +185,26 @@ export default function ResultsPage() {
     if (selectedExam) void loadCandidates(selectedExam.id);
   }, [selectedExam, loadCandidates]);
 
-  // ── Derived ────────────────────────────────────────────────────────────────
+  // ── Derived stats ────────────────────────────────────────────────────────────
+  const submitted    = candidates.filter((c) => c.status === 'submitted');
+  const inProgress   = candidates.filter((c) => c.status === 'in-progress');
+  const disqualified = candidates.filter((c) => c.status === 'disqualified');
+  const pending      = candidates.filter((c) => c.status === 'registered');
+
+  const avgScore = submitted.length > 0
+    ? Math.round(submitted.reduce((s, c) => s + (c.score ?? 0), 0) / submitted.length)
+    : null;
+
+  const passCount = submitted.filter((c) => (c.score ?? 0) >= 50).length;
+  const failCount = submitted.filter((c) => (c.score ?? 0) < 50).length;
+
+  const total = candidates.length || 1; // avoid /0
+  const passPct  = Math.round((passCount / total) * 100);
+  const failPct  = Math.round((failCount / total) * 100);
+  const dqPct    = Math.round((disqualified.length / total) * 100);
+  const pendPct  = Math.max(0, 100 - passPct - failPct - dqPct);
+
+  // ── Filtered & sorted list ───────────────────────────────────────────────────
   const filtered = candidates
     .filter((c) => {
       const q = search.toLowerCase();
@@ -110,224 +216,287 @@ export default function ResultsPage() {
     })
     .sort((a, b) => {
       let cmp = 0;
-      if (sortBy === 'score') {
-        cmp = (a.score ?? -1) - (b.score ?? -1);
-      } else if (sortBy === 'name') {
-        cmp = a.name.localeCompare(b.name);
-      } else if (sortBy === 'status') {
-        cmp = a.status.localeCompare(b.status);
-      }
+      if (sortBy === 'score')         cmp = (a.score ?? -1) - (b.score ?? -1);
+      else if (sortBy === 'name')     cmp = a.name.localeCompare(b.name);
+      else if (sortBy === 'status')   cmp = a.status.localeCompare(b.status);
+      else if (sortBy === 'tabSwitchCount') cmp = a.tabSwitchCount - b.tabSwitchCount;
       return sortDir === 'asc' ? cmp : -cmp;
     });
 
-  const submitted = candidates.filter((c) => c.status === 'submitted');
-  const avgScore =
-    submitted.length > 0
-      ? Math.round(submitted.reduce((s, c) => s + (c.score ?? 0), 0) / submitted.length)
-      : null;
-  const passCount = submitted.filter((c) => (c.score ?? 0) >= 50).length;
-  const dqCount = candidates.filter((c) => c.status === 'disqualified').length;
-
-  const toggleSort = (col: typeof sortBy) => {
+  const toggleSort = (col: SortKey) => {
     if (sortBy === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else { setSortBy(col); setSortDir('desc'); }
   };
 
-  const SortIcon = ({ col }: { col: typeof sortBy }) =>
+  const SortIcon = ({ col }: { col: SortKey }) =>
     sortBy === col
-      ? (sortDir === 'desc' ? <span> ↓</span> : <span> ↑</span>)
-      : <span className="text-gray-300"> ↕</span>;
+      ? <span style={{ opacity: 0.8 }}>{sortDir === 'desc' ? ' ↓' : ' ↑'}</span>
+      : <span style={{ opacity: 0.3 }}> ↕</span>;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <main className="flex-1 px-8 py-8 max-w-6xl">
-
-        {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Results</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            View scores and submission status for each exam.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center gap-3 text-gray-500">
-            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+  // ── Loading state ────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <AdminNav />
+        <main className={styles.page}>
+          <div className={styles.spinner}>
+            <div className={styles.spinnerDot} />
             Loading exams…
           </div>
-        ) : exams.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <div className="text-4xl mb-3">📋</div>
-            <p>No exams found. Create an exam first.</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
+        </main>
+      </div>
+    );
+  }
 
-            {/* Exam selector */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                Select Exam
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {exams.map((exam) => (
-                  <button
-                    key={exam.id}
-                    onClick={() => setSelectedExam(exam)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                      selectedExam?.id === exam.id
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
-                    }`}
-                  >
-                    {exam.title}
-                    <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
-                      selectedExam?.id === exam.id ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {exam.status}
-                    </span>
-                  </button>
-                ))}
+  // ── No exams ─────────────────────────────────────────────────────────────────
+  if (exams.length === 0) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <AdminNav />
+        <main className={styles.page}>
+          <div className={styles.header}>
+            <h1 className={styles.title}>Results</h1>
+            <p className={styles.subtitle}>View scores and submission status for each exam.</p>
+          </div>
+          <div className={styles.noExams}>
+            <div className={styles.noExamsIcon}>📋</div>
+            <p className={styles.noExamsText}>No exams found. Create an exam first from the dashboard.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ── Main render ──────────────────────────────────────────────────────────────
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <AdminNav />
+
+      <main className={styles.page}>
+
+        {/* Header */}
+        <div className={styles.header}>
+          <h1 className={styles.title}>Results</h1>
+          <p className={styles.subtitle}>Scores, rankings, and submission analytics for each exam.</p>
+        </div>
+
+        {/* Exam Selector */}
+        <div className={styles.examSelector}>
+          <p className={styles.selectorLabel}>Select Exam</p>
+          <div className={styles.examPills}>
+            {exams.map((exam) => (
+              <button
+                key={exam.id}
+                onClick={() => setSelectedExam(exam)}
+                className={`${styles.examPill} ${selectedExam?.id === exam.id ? styles.active : ''}`}
+              >
+                {exam.title}
+                <span className={styles.pillBadge}>{exam.status}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedExam && (
+          <>
+            {/* Stats Grid */}
+            <div className={styles.statsGrid}>
+              <div className={styles.statCard}>
+                <div className={`${styles.statIcon} ${styles.gray}`}>👥</div>
+                <div className={styles.statValue}>{candidates.length}</div>
+                <div className={styles.statLabel}>Total Registered</div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={`${styles.statIcon} ${styles.blue}`}>📤</div>
+                <div className={`${styles.statValue} ${styles.blue}`}>{submitted.length}</div>
+                <div className={styles.statLabel}>Submitted</div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={`${styles.statIcon} ${styles.green}`}>📊</div>
+                <div className={`${styles.statValue} ${styles.green}`}>
+                  {avgScore !== null ? `${avgScore}%` : '—'}
+                </div>
+                <div className={styles.statLabel}>Average Score</div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={`${styles.statIcon} ${styles.amber}`}>✅</div>
+                <div className={`${styles.statValue} ${styles.amber}`}>
+                  {submitted.length > 0
+                    ? `${Math.round((passCount / submitted.length) * 100)}%`
+                    : '—'}
+                </div>
+                <div className={styles.statLabel}>Pass Rate</div>
+              </div>
+
+              <div className={styles.statCard}>
+                <div className={`${styles.statIcon} ${styles.red}`}>🚫</div>
+                <div className={`${styles.statValue} ${styles.red}`}>{disqualified.length}</div>
+                <div className={styles.statLabel}>Disqualified</div>
               </div>
             </div>
 
-            {/* Summary cards */}
-            {selectedExam && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: 'Registered', value: candidates.length, colour: 'text-gray-700' },
-                  { label: 'Submitted', value: submitted.length, colour: 'text-blue-600' },
-                  { label: 'Avg. Score', value: avgScore !== null ? `${avgScore}%` : '—', colour: 'text-emerald-600' },
-                  { label: 'Pass / DQ', value: `${passCount} / ${dqCount}`, colour: 'text-gray-700' },
-                ].map(({ label, value, colour }) => (
-                  <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
-                    <div className={`text-2xl font-bold ${colour}`}>{value}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{label}</div>
-                  </div>
-                ))}
+            {/* Score Distribution Bar */}
+            {candidates.length > 0 && (
+              <div className={styles.distributionCard}>
+                <p className={styles.distTitle}>Result Distribution</p>
+                <div className={styles.distBar}>
+                  <div className={`${styles.distSegment} ${styles.pass}`}    style={{ width: `${passPct}%` }} />
+                  <div className={`${styles.distSegment} ${styles.fail}`}    style={{ width: `${failPct}%` }} />
+                  <div className={`${styles.distSegment} ${styles.dq}`}      style={{ width: `${dqPct}%` }} />
+                  <div className={`${styles.distSegment} ${styles.pending}`} style={{ width: `${pendPct}%` }} />
+                </div>
+                <div className={styles.distLegend}>
+                  <span className={styles.legendItem}>
+                    <span className={`${styles.legendDot} ${styles.pass}`} />
+                    Pass ({passCount})
+                  </span>
+                  <span className={styles.legendItem}>
+                    <span className={`${styles.legendDot} ${styles.fail}`} />
+                    Fail ({failCount})
+                  </span>
+                  <span className={styles.legendItem}>
+                    <span className={`${styles.legendDot} ${styles.dq}`} />
+                    Disqualified ({disqualified.length})
+                  </span>
+                  {(inProgress.length > 0 || pending.length > 0) && (
+                    <span className={styles.legendItem}>
+                      <span className={`${styles.legendDot} ${styles.pending}`} />
+                      Pending ({inProgress.length + pending.length})
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Candidate table */}
-            {selectedExam && (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {/* Table toolbar */}
-                <div className="p-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search name, email, or code…"
-                    className="flex-1 min-w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={() => void loadCandidates(selectedExam.id)}
-                    className="px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    🔄 Refresh
-                  </button>
-                </div>
+            {/* Candidate Table */}
+            <div className={styles.tableCard}>
+              {/* Toolbar */}
+              <div className={styles.tableToolbar}>
+                <span className={styles.tableTitle}>
+                  {selectedExam.title}
+                  <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 8, fontSize: 'var(--text-sm)' }}>
+                    ({filtered.length} candidates)
+                  </span>
+                </span>
 
-                {candLoading ? (
-                  <div className="flex items-center gap-3 p-8 text-gray-500 text-sm">
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    Loading results…
-                  </div>
-                ) : filtered.length === 0 ? (
-                  <div className="p-10 text-center text-gray-400 text-sm">
-                    {search ? 'No candidates match your search.' : 'No candidates found for this exam.'}
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            #
-                          </th>
-                          <th
-                            className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-                            onClick={() => toggleSort('name')}
-                          >
-                            Candidate <SortIcon col="name" />
-                          </th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Code
-                          </th>
-                          <th
-                            className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-                            onClick={() => toggleSort('status')}
-                          >
-                            Status <SortIcon col="status" />
-                          </th>
-                          <th
-                            className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer hover:text-blue-600"
-                            onClick={() => toggleSort('score')}
-                          >
-                            Score <SortIcon col="score" />
-                          </th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Answered
-                          </th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Tab Switches
-                          </th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Submitted At
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {filtered.map((c, i) => {
-                          const badge = STATUS_BADGE[c.status] ?? { label: c.status, cls: 'bg-gray-100 text-gray-600' };
-                          return (
-                            <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
-                              <td className="px-4 py-3">
-                                <div className="font-medium text-gray-900">{c.name}</div>
-                                <div className="text-xs text-gray-400">{c.email}</div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">
-                                  {c.examCode}
-                                </code>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${badge.cls}`}>
-                                  {badge.label}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <ScoreBadge score={c.score} status={c.status} />
-                              </td>
-                              <td className="px-4 py-3 text-center text-gray-600">
-                                {c.totalAnswered !== undefined && c.totalAnswered !== null
-                                  ? c.totalAnswered
-                                  : '—'}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`text-sm font-medium ${
-                                  c.tabSwitchCount >= 4 ? 'text-red-600' :
-                                  c.tabSwitchCount >= 2 ? 'text-amber-600' : 'text-gray-600'
-                                }`}>
-                                  {c.tabSwitchCount}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-xs text-gray-500">
-                                {formatDate(c.submittedAt)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search name, email or code…"
+                  className={styles.searchInput}
+                />
+
+                <button
+                  onClick={() => void loadCandidates(selectedExam.id)}
+                  className={styles.toolbarBtn}
+                >
+                  🔄 Refresh
+                </button>
+
+                {candidates.length > 0 && (
+                  <button
+                    onClick={() => exportCsv(candidates, selectedExam.title)}
+                    className={styles.exportBtn}
+                  >
+                    ⬇ Export CSV
+                  </button>
                 )}
               </div>
-            )}
-          </div>
+
+              {/* Table body */}
+              {candLoading ? (
+                <div className={styles.spinner}>
+                  <div className={styles.spinnerDot} />
+                  Loading results…
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className={styles.empty}>
+                  <div className={styles.emptyIcon}>🔍</div>
+                  <p className={styles.emptyText}>
+                    {search
+                      ? 'No candidates match your search.'
+                      : 'No candidates registered for this exam yet.'}
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 48 }}>Rank</th>
+                        <th
+                          className={styles.sortable}
+                          onClick={() => toggleSort('name')}
+                        >
+                          Candidate <SortIcon col="name" />
+                        </th>
+                        <th>Code</th>
+                        <th
+                          className={styles.sortable}
+                          onClick={() => toggleSort('status')}
+                        >
+                          Status <SortIcon col="status" />
+                        </th>
+                        <th
+                          className={styles.sortable}
+                          onClick={() => toggleSort('score')}
+                          style={{ minWidth: 100 }}
+                        >
+                          Score <SortIcon col="score" />
+                        </th>
+                        <th style={{ textAlign: 'center' }}>Answered</th>
+                        <th
+                          className={styles.sortable}
+                          style={{ textAlign: 'center' }}
+                          onClick={() => toggleSort('tabSwitchCount')}
+                        >
+                          Tab Sw. <SortIcon col="tabSwitchCount" />
+                        </th>
+                        <th>Submitted At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((c, i) => (
+                        <tr key={c.id}>
+                          <td>
+                            <RankCell index={i} candidates={filtered} />
+                          </td>
+                          <td>
+                            <div className={styles.candidateName}>{c.name}</div>
+                            <div className={styles.candidateEmail}>{c.email}</div>
+                          </td>
+                          <td>
+                            <span className={styles.code}>{c.examCode}</span>
+                          </td>
+                          <td>
+                            <StatusBadge status={c.status} />
+                          </td>
+                          <td>
+                            <ScoreCell score={c.score} status={c.status} />
+                          </td>
+                          <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                            {c.totalAnswered !== undefined && c.totalAnswered !== null
+                              ? `${c.totalAnswered} / ${selectedExam.questionCount}`
+                              : '—'}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <TabSwitchCell count={c.tabSwitchCount} />
+                          </td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                            {formatDate(c.submittedAt)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </main>
     </div>

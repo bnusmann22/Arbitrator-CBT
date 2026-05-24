@@ -22,7 +22,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json?.message?.[0] ?? 'Request failed');
+  if (!res.ok) throw new Error(json?.message?.[0] ?? json?.message ?? 'Request failed');
+  // Unwrap TransformInterceptor envelope { success, data, timestamp } if present
+  if (json !== null && typeof json === 'object' && 'success' in json && 'data' in json) {
+    return json.data as T;
+  }
   return json as T;
 }
 
@@ -65,9 +69,11 @@ export default function CandidatesPage() {
   useEffect(() => {
     fetch(`${API}/admin/exams`, { credentials: 'include' })
       .then((r) => r.json())
-      .then((data: Exam[]) => {
-        setExams(data);
-        if (data.length > 0) setSelectedExamId(data[0].id);
+      .then((data: unknown) => {
+        const raw = (data as { data?: unknown })?.data ?? data;
+        const list: Exam[] = Array.isArray(raw) ? raw : [];
+        setExams(list);
+        if (list.length > 0) setSelectedExamId(list[0].id);
       })
       .catch(console.error)
       .finally(() => setLoadingExams(false));
@@ -79,7 +85,10 @@ export default function CandidatesPage() {
     setLoadingCandidates(true);
     fetch(`${API}/candidates?examId=${selectedExamId}`, { credentials: 'include' })
       .then((r) => r.json())
-      .then((data: CandidateRow[]) => setCandidates(data))
+      .then((data: unknown) => {
+        const raw = (data as { data?: unknown })?.data ?? data;
+        setCandidates(Array.isArray(raw) ? raw : []);
+      })
       .catch(console.error)
       .finally(() => setLoadingCandidates(false));
   }, [selectedExamId]);
@@ -128,7 +137,8 @@ export default function CandidatesPage() {
           body: JSON.stringify({ candidates: parsed, examId: selectedExamId }),
         },
       );
-      setCandidates((prev) => [...result.candidates, ...prev]);
+      const added = Array.isArray(result.candidates) ? result.candidates : [];
+      setCandidates((prev) => [...added, ...prev]);
       setBulkText('');
       setBulkMsg({
         type: 'success',

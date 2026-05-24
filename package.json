@@ -2,6 +2,7 @@
   "name": "arbitration-sandbox",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@11.14.1",
   "description": "MCQ Examination Simulation Platform",
   "workspaces": [
     "apps/*",

@@ -188,13 +188,22 @@ export class CandidateService {
   // ── Read ──────────────────────────────────────────────────────────────────
 
   async getCandidates(examId: string): Promise<CandidateDoc[]> {
+    // NOTE: Combining where() + orderBy() on different fields needs a composite
+    // Firestore index. Sort in memory instead so no index configuration is required.
     const snap = await this.db
       .collection('candidates')
       .where('examId', '==', examId)
-      .orderBy('createdAt', 'desc')
       .get();
 
-    return snap.docs.map((d) => this.docToCandidate(d.id, d.data()));
+    const docs = snap.docs.map((d) => this.docToCandidate(d.id, d.data()));
+
+    // Sort newest-first (mirrors the previous orderBy('createdAt', 'desc'))
+    docs.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return docs;
   }
 
   async getCandidate(id: string): Promise<CandidateDoc> {

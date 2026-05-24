@@ -28,9 +28,11 @@ export default function QuestionsPage() {
   useEffect(() => {
     fetch(`${API}/admin/exams`, { credentials: 'include' })
       .then((r) => r.json())
-      .then((data: Exam[]) => {
-        setExams(data);
-        if (data.length > 0) setSelectedExamId(data[0].id);
+      .then((data: unknown) => {
+        const raw = (data as { data?: unknown })?.data ?? data;
+        const list: Exam[] = Array.isArray(raw) ? raw : [];
+        setExams(list);
+        if (list.length > 0) setSelectedExamId(list[0].id);
       })
       .catch(console.error)
       .finally(() => setLoadingExams(false));
@@ -44,7 +46,10 @@ export default function QuestionsPage() {
 
     fetch(`${API}/questions?examId=${selectedExamId}`, { credentials: 'include' })
       .then((r) => r.json())
-      .then((data: ParsedQuestionRow[]) => setQuestions(data))
+      .then((data: unknown) => {
+        const raw = (data as { data?: unknown })?.data ?? data;
+        setQuestions(Array.isArray(raw) ? raw : []);
+      })
       .catch(console.error)
       .finally(() => setLoadingQuestions(false));
   }, [selectedExamId]);

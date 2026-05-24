@@ -139,7 +139,6 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Redirect to dashboard
       router.push('/dashboard');
     } catch {
       setServerError('Unable to reach the server. Please try again.');
@@ -181,7 +180,6 @@ export default function AdminLoginPage() {
             disabled={isLoading}
           />
 
-          {/* Password with show/hide toggle */}
           <div className={styles.passwordWrapper}>
             <Input
               label="Password"

@@ -132,6 +132,7 @@
   font-size: var(--text-sm);
   color: var(--accent-danger);
   line-height: 1.5;
+  margin-bottom: var(--space-md);
 }
 
 .alertIcon {
@@ -157,7 +158,7 @@
   padding: 4px;
   line-height: 0;
   transition: color var(--transition-fast);
-  margin-top: 12px; /* Align with input (label offset) */
+  margin-top: 12px;
 }
 
 .passwordToggle:hover {

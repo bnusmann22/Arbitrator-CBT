@@ -1,36 +1,44 @@
 // ============================================
 // Arbitration Sandbox — Shared Type Definitions
 // ============================================
+//
+// NOTE: No TypeScript enums here — they require code generation
+// and are not compatible with Node v22's strip-only TypeScript mode.
+// Use `const` objects + `typeof` type aliases instead.
 
-// ---- Enums ----
+// ── Const "enums" ────────────────────────────────────────────────────────────
 
-export enum UserRole {
-  ADMIN = 'admin',
-  CANDIDATE = 'candidate',
-}
+export const UserRole = {
+  ADMIN: 'admin',
+  CANDIDATE: 'candidate',
+} as const;
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
-export enum ExamStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-}
+export const ExamStatus = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+} as const;
+export type ExamStatus = (typeof ExamStatus)[keyof typeof ExamStatus];
 
-export enum CandidateStatus {
-  REGISTERED = 'registered',
-  IN_PROGRESS = 'in-progress',
-  SUBMITTED = 'submitted',
-  DISQUALIFIED = 'disqualified',
-}
+export const CandidateStatus = {
+  REGISTERED: 'registered',
+  IN_PROGRESS: 'in-progress',
+  SUBMITTED: 'submitted',
+  DISQUALIFIED: 'disqualified',
+} as const;
+export type CandidateStatus = (typeof CandidateStatus)[keyof typeof CandidateStatus];
 
-export enum QuestionStatus {
-  NOT_VISITED = 'not-visited',
-  CURRENT = 'current',
-  ANSWERED = 'answered',
-  MARKED = 'marked',
-  NOT_ANSWERED = 'not-answered',
-}
+export const QuestionStatus = {
+  NOT_VISITED: 'not-visited',
+  CURRENT: 'current',
+  ANSWERED: 'answered',
+  MARKED: 'marked',
+  NOT_ANSWERED: 'not-answered',
+} as const;
+export type QuestionStatus = (typeof QuestionStatus)[keyof typeof QuestionStatus];
 
-// ---- Data Models ----
+// ── Data Models ───────────────────────────────────────────────────────────────
 
 export interface Admin {
   id: string;
@@ -96,7 +104,7 @@ export interface Answer {
   answeredAt: Date;
 }
 
-// ---- API DTOs ----
+// ── API DTOs ──────────────────────────────────────────────────────────────────
 
 export interface AdminLoginDto {
   email: string;
@@ -132,7 +140,7 @@ export interface SubmitAnswerDto {
   selectedOption: 'A' | 'B' | 'C' | 'D' | null;
 }
 
-// ---- API Responses ----
+// ── API Responses ─────────────────────────────────────────────────────────────
 
 export interface AuthResponse {
   accessToken: string;

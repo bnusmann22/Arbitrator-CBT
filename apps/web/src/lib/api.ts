@@ -10,31 +10,39 @@ const api = axios.create({
   },
 });
 
-// Request interceptor — attach JWT from cookie (handled by browser automatically with withCredentials)
+/**
+ * Unwraps the TransformInterceptor envelope `{ success, data, timestamp }`
+ * if present, otherwise returns the value as-is.
+ *
+ * This lets the frontend work correctly whether the NestJS API has the
+ * global TransformInterceptor active or not.
+ */
+function unwrapEnvelope<T>(body: unknown): T {
+  if (
+    body !== null &&
+    typeof body === 'object' &&
+    'success' in body &&
+    'data' in body
+  ) {
+    return (body as { data: T }).data;
+  }
+  return body as T;
+}
+
+// Request interceptor — JWT is sent automatically via httpOnly cookie
 api.interceptors.request.use(
-  (config) => {
-    // JWT is sent via httpOnly cookie, no manual header needed
-    // But for cases where we store token in memory (SSR), we can attach it
-    if (typeof window !== 'undefined') {
-      const token = sessionStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
+  (config) => config,
   (error) => Promise.reject(error),
 );
 
-// Response interceptor — handle auth errors globally
+// Response interceptor — unwrap envelope + handle 401
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => unwrapEnvelope(response.data),
   (error) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('accessToken');
-        const isAdmin = window.location.pathname.startsWith('/admin');
+        const isAdmin = window.location.pathname.startsWith('/admin') ||
+                        window.location.pathname.startsWith('/dashboard');
         window.location.href = isAdmin ? '/admin/login' : '/login';
       }
     }

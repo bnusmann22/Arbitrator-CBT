@@ -44,7 +44,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json?.message?.[0] ?? 'Request failed');
+  if (!res.ok) throw new Error(json?.message?.[0] ?? json?.message ?? 'Request failed');
+  // Unwrap TransformInterceptor envelope { success, data, timestamp } if present
+  if (json !== null && typeof json === 'object' && 'success' in json && 'data' in json) {
+    return json.data as T;
+  }
   return json as T;
 }
 
@@ -71,7 +75,7 @@ export default function DashboardPage() {
     ])
       .then(([s, e]) => {
         setStats(s);
-        setExams(e);
+        setExams(Array.isArray(e) ? e : (e as { data?: Exam[] })?.data ?? []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -108,6 +112,24 @@ export default function DashboardPage() {
     return new Date(dateStr).toLocaleDateString('en-US', {
       day: '2-digit', month: 'short', year: 'numeric',
     });
+  }
+
+  // ── Exam status transitions ─────────────────────────────────────────────────
+  const [statusLoading, setStatusLoading] = useState<string | null>(null); // examId being changed
+
+  async function handleStatusChange(examId: string, newStatus: 'active' | 'draft' | 'completed') {
+    setStatusLoading(examId);
+    try {
+      const updated = await apiFetch<Exam>(`/admin/exams/${examId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setExams((prev) => prev.map((e) => (e.id === examId ? updated : e)));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to update exam status.');
+    } finally {
+      setStatusLoading(null);
+    }
   }
 
   return (
@@ -221,31 +243,84 @@ export default function DashboardPage() {
                   <th>Questions</th>
                   <th>Candidates</th>
                   <th>Created</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {exams.map((exam) => (
-                  <tr key={exam.id}>
-                    <td style={{ fontWeight: 600 }}>{exam.title}</td>
-                    <td>
-                      <span className={`${styles.examStatus} ${styles[exam.status]}`}>
-                        {exam.status}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>
-                      {exam.durationMinutes} min
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>
-                      {exam.questionCount}
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>
-                      {exam.candidateCount}
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                      {formatDate(exam.createdAt)}
-                    </td>
-                  </tr>
-                ))}
+                {exams.map((exam) => {
+                  const isChanging = statusLoading === exam.id;
+                  return (
+                    <tr key={exam.id}>
+                      <td style={{ fontWeight: 600 }}>{exam.title}</td>
+                      <td>
+                        <span className={`${styles.examStatus} ${styles[exam.status]}`}>
+                          {exam.status}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {exam.durationMinutes} min
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {exam.questionCount}
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {exam.candidateCount}
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        {formatDate(exam.createdAt)}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {exam.status === 'draft' && (
+                          <button
+                            onClick={() => handleStatusChange(exam.id, 'active')}
+                            disabled={isChanging}
+                            style={{
+                              padding: '4px 12px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: isChanging ? 'not-allowed' : 'pointer',
+                              background: '#16a34a',
+                              color: '#fff',
+                              opacity: isChanging ? 0.6 : 1,
+                            }}
+                          >
+                            {isChanging ? '…' : '▶ Activate'}
+                          </button>
+                        )}
+                        {exam.status === 'active' && (
+                          <button
+                            onClick={() => {
+                              if (confirm('Close this exam? Candidates will no longer be able to start it.')) {
+                                void handleStatusChange(exam.id, 'completed');
+                              }
+                            }}
+                            disabled={isChanging}
+                            style={{
+                              padding: '4px 12px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: isChanging ? 'not-allowed' : 'pointer',
+                              background: '#dc2626',
+                              color: '#fff',
+                              opacity: isChanging ? 0.6 : 1,
+                            }}
+                          >
+                            {isChanging ? '…' : '⏹ Close'}
+                          </button>
+                        )}
+                        {exam.status === 'completed' && (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Closed
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

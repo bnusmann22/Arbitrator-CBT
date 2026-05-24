@@ -57,6 +57,8 @@ export class AuthController {
     @Body() dto: AdminLoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
+    // Clear any stale session (e.g. a leftover candidate cookie) before issuing a new one
+    this.clearCookie(res);
     const user = await this.authService.validateAdmin(dto);
     const token = this.authService.signToken(user);
     this.setCookie(res, token);
