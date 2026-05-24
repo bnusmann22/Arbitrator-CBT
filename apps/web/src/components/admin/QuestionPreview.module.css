@@ -1,0 +1,195 @@
+/* ============================================================
+   QuestionPreview — Parsed Question Table
+   ============================================================ */
+
+.wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+/* ── Header ───────────────────────────────────────── */
+
+.table thead {
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.table th {
+  padding: var(--space-md) var(--space-lg);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Rows ─────────────────────────────────────────── */
+
+.table tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--bg-glass-hover);
+}
+
+.table td {
+  padding: var(--space-md) var(--space-lg);
+  vertical-align: top;
+  color: var(--text-primary);
+}
+
+/* ── Number cell ──────────────────────────────────── */
+
+.numCell {
+  width: 48px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* ── Question text ────────────────────────────────── */
+
+.questionText {
+  min-width: 240px;
+  max-width: 380px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.reviewBadge {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent-warning);
+  background: var(--accent-warning-glow);
+  border: 1px solid hsla(38, 95%, 60%, 0.3);
+  border-radius: var(--radius-full);
+  padding: 1px 8px;
+  margin-left: var(--space-sm);
+  white-space: nowrap;
+}
+
+/* ── Options cell ─────────────────────────────────── */
+
+.options {
+  min-width: 200px;
+}
+
+.optionRow {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: 2px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.optionRow:last-child {
+  margin-bottom: 0;
+}
+
+.optionKey {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  min-width: 18px;
+}
+
+.optionValue {
+  flex: 1;
+  font-size: var(--text-xs);
+}
+
+/* ── Correct answer ───────────────────────────────── */
+
+.answer {
+  width: 80px;
+}
+
+.answerBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--accent-success-glow);
+  color: var(--accent-success);
+  border: 1px solid hsla(152, 70%, 50%, 0.3);
+}
+
+/* ── Actions ──────────────────────────────────────── */
+
+.actions {
+  width: 80px;
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 0;
+}
+
+.deleteBtn:hover {
+  color: var(--accent-danger);
+  background: var(--accent-danger-glow);
+}
+
+/* ── Empty state ──────────────────────────────────── */
+
+.empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ── Summary bar ──────────────────────────────────── */
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.summaryCount {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.reviewCount {
+  color: var(--accent-warning);
+  font-weight: 600;
+}

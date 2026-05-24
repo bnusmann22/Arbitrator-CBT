@@ -1,0 +1,190 @@
+/* ============================================================
+   Admin Login Page
+   ============================================================ */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient background blobs */
+.page::before,
+.page::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-full);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page::before {
+  width: 500px;
+  height: 500px;
+  top: -100px;
+  right: -100px;
+  background: radial-gradient(
+    circle,
+    hsla(250, 90%, 65%, 0.1),
+    transparent 70%
+  );
+}
+
+.page::after {
+  width: 350px;
+  height: 350px;
+  bottom: -80px;
+  left: -80px;
+  background: radial-gradient(
+    circle,
+    hsla(152, 70%, 50%, 0.08),
+    transparent 70%
+  );
+}
+
+/* ── Card ─────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-2xl) var(--space-xl);
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn var(--transition-slow) ease-out;
+}
+
+/* ── Header ───────────────────────────────────────── */
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.logoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-lg);
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-glow);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.badge {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: hsla(250, 90%, 65%, 0.12);
+  border: 1px solid hsla(250, 90%, 65%, 0.25);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ── Form ─────────────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ── Alert (error banner) ─────────────────────────── */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: hsla(0, 80%, 60%, 0.1);
+  border: 1px solid hsla(0, 80%, 60%, 0.3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--accent-danger);
+  line-height: 1.5;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Password field wrapper ───────────────────────── */
+
+.passwordWrapper {
+  position: relative;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  line-height: 0;
+  transition: color var(--transition-fast);
+  margin-top: 12px; /* Align with input (label offset) */
+}
+
+.passwordToggle:hover {
+  color: var(--text-secondary);
+}
+
+/* ── Submit ───────────────────────────────────────── */
+
+.submitBtn {
+  margin-top: var(--space-sm);
+}
+
+/* ── Footer note ──────────────────────────────────── */
+
+.footer {
+  margin-top: var(--space-lg);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.footer a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}

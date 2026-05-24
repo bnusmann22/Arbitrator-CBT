@@ -1,0 +1,282 @@
+/* ============================================================
+   Admin Dashboard Page
+   ============================================================ */
+
+.page {
+  flex: 1;
+  padding: var(--space-2xl);
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* ── Page header ──────────────────────────────────── */
+
+.header {
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ── Stats grid ───────────────────────────────────── */
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.statCard {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  transition: all var(--transition-base);
+}
+
+.statCard:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.statIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-md);
+  font-size: 1.1rem;
+}
+
+.statIcon.purple { background: hsla(250, 90%, 65%, 0.12); }
+.statIcon.blue   { background: hsla(200, 90%, 55%, 0.12); }
+.statIcon.green  { background: hsla(152, 70%, 50%, 0.12); }
+.statIcon.amber  { background: hsla(38, 95%, 60%, 0.12); }
+
+.statValue {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ── Section ──────────────────────────────────────── */
+
+.section {
+  margin-bottom: var(--space-2xl);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sectionLink {
+  font-size: var(--text-sm);
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.sectionLink:hover { text-decoration: underline; }
+
+/* ── Exams table ──────────────────────────────────── */
+
+.examTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  font-size: var(--text-sm);
+}
+
+.examTable th {
+  background: var(--bg-tertiary);
+  padding: var(--space-md) var(--space-lg);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.examTable td {
+  padding: var(--space-md) var(--space-lg);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.examTable tr:last-child td { border-bottom: none; }
+
+.examTable tr:hover td { background: var(--bg-glass-hover); }
+
+.examStatus {
+  display: inline-block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+  text-transform: capitalize;
+}
+
+.examStatus.draft {
+  background: hsla(222, 30%, 30%, 0.4);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.examStatus.active {
+  background: var(--accent-success-glow);
+  color: var(--accent-success);
+  border: 1px solid hsla(152, 70%, 50%, 0.3);
+}
+
+.examStatus.completed {
+  background: hsla(250, 90%, 65%, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid hsla(250, 90%, 65%, 0.3);
+}
+
+/* ── Quick actions ────────────────────────────────── */
+
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+}
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  cursor: pointer;
+  text-align: center;
+}
+
+.actionCard:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-glass-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.actionIcon {
+  font-size: 1.5rem;
+}
+
+.actionLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.actionDesc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ── Loading skeleton ─────────────────────────────── */
+
+.skeletonCard {
+  border-radius: var(--radius-xl);
+  height: 120px;
+}
+
+/* ── Modal overlay for create exam ───────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: hsla(0, 0%, 0%, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+}
+
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-2xl);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp var(--transition-slow) ease-out;
+}
+
+.modalTitle {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xl);
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+  margin-top: var(--space-sm);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

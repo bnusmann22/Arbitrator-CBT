@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find apps/api/src/modules apps/web/src/app apps/web/middleware.ts -type f)",
+      "Bash(dir /s /b apps\\\\api\\\\src\\\\modules apps\\\\web\\\\src\\\\app apps\\\\web\\\\middleware.ts)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

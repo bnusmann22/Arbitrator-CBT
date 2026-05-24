@@ -20,7 +20,7 @@
     "jspdf-autotable": "^3.8.4",
     "react-dropzone": "^14.3.5",
     "react-hot-toast": "^2.4.1",
-    "@arbitration/types": "workspace:*"
+    "@arbitration/types": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

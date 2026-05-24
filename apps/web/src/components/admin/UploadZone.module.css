@@ -1,0 +1,134 @@
+/* ============================================================
+   UploadZone — Drag & Drop Upload Component
+   ============================================================ */
+
+.zone {
+  border: 2px dashed var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: var(--bg-secondary);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.zone:hover,
+.zone.dragover {
+  border-color: var(--accent-primary);
+  background: hsla(250, 90%, 65%, 0.05);
+  box-shadow: 0 0 0 4px var(--accent-primary-glow);
+}
+
+.zone.dragover {
+  border-style: solid;
+}
+
+.zone.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* ── Icon area ────────────────────────────────────── */
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  background: hsla(250, 90%, 65%, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  transition: transform var(--transition-base);
+}
+
+.zone:hover .iconWrapper,
+.zone.dragover .iconWrapper {
+  transform: scale(1.08);
+}
+
+/* ── Text ─────────────────────────────────────────── */
+
+.title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* ── File selected state ──────────────────────────── */
+
+.fileSelected {
+  border-color: var(--accent-success);
+  background: hsla(152, 70%, 50%, 0.05);
+}
+
+.fileName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent-success);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.fileSize {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ── Upload progress ──────────────────────────────── */
+
+.progress {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-sm);
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-full);
+  transition: width var(--transition-fast);
+  animation: progressShimmer 1.5s infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes progressShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Error state ──────────────────────────────────── */
+
+.error {
+  font-size: var(--text-sm);
+  color: var(--accent-danger);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}

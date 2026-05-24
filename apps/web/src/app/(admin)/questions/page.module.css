@@ -1,0 +1,142 @@
+/* ============================================================
+   Questions Management Page
+   ============================================================ */
+
+.page {
+  flex: 1;
+  padding: var(--space-2xl);
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ── Exam selector ────────────────────────────────── */
+
+.controls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.selectWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 280px;
+}
+
+.selectLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  outline: none;
+  font-family: var(--font-sans);
+}
+
+.select:focus {
+  border-color: var(--accent-primary);
+}
+
+.select option {
+  background: var(--bg-secondary);
+}
+
+/* ── Upload section ───────────────────────────────── */
+
+.uploadSection {
+  margin-bottom: var(--space-2xl);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+/* ── Toast / upload result ────────────────────────── */
+
+.uploadResult {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--accent-success-glow);
+  border: 1px solid hsla(152, 70%, 50%, 0.3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--accent-success);
+  margin-top: var(--space-md);
+  font-weight: 600;
+}
+
+/* ── Questions section ────────────────────────────── */
+
+.questionsSection {
+  margin-bottom: var(--space-2xl);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.deleteAllBtn {
+  font-size: var(--text-sm);
+  color: var(--accent-danger);
+  background: none;
+  border: 1px solid hsla(0, 80%, 60%, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.deleteAllBtn:hover {
+  background: var(--accent-danger-glow);
+}
+
+/* ── Empty exam message ───────────────────────────── */
+
+.noExamHint {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--text-muted);
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-sm);
+}
