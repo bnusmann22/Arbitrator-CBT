@@ -12,7 +12,17 @@
       "Bash(node -e \"const t = require\\('tesseract.js'\\); console.log\\(typeof t.recognize\\);\")",
       "WebFetch(domain:arbitration-sandbox-api.fly.dev)",
       "PowerShell(git -C \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\" rm fly.toml)",
-      "PowerShell(git -C \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\" status)"
+      "PowerShell(git -C \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\" status)",
+      "PowerShell(npm install -g @railway/cli)",
+      "PowerShell(railway --version)",
+      "PowerShell(railway whoami)",
+      "PowerShell(Set-Location \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\"; Get-Item package-lock.json | Select-Object Name, Length; \\(Get-Content package-lock.json | Select-Object -First 5\\))",
+      "Bash(git check-ignore *)",
+      "Bash(git commit -m 'fix\\(build\\): commit package-lock.json and unblock npm ci in Docker *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix\\(types\\): point main and types fields to dist output *)",
+      "PowerShell(Invoke-RestMethod -Uri \"https://arbitrator-cbt-production.up.railway.app/api/health\" -Method Get)"
     ]
   }
 }
