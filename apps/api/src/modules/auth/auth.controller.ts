@@ -35,16 +35,20 @@ export class AuthController {
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      // SameSite=None is required for the cookie to be sent in cross-origin
+      // requests (Vercel frontend → Railway API). Must be accompanied by Secure=true.
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge,
       path: '/',
     });
   }
 
   private clearCookie(res: Response): void {
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
     res.clearCookie(COOKIE_NAME, {
       httpOnly: true,
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
     });
   }

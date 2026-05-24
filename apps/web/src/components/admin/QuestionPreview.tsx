@@ -38,7 +38,7 @@ export default function QuestionPreview({
     setDeletingId(q.id);
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/questions/${examId}/${q.id}`,
+        `/api/proxy/questions/${examId}/${q.id}`,
         { method: 'DELETE', credentials: 'include' },
       );
       onDelete(q.id);
@@ -55,7 +55,7 @@ export default function QuestionPreview({
   ) {
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/questions/${examId}/${q.id}`,
+        `/api/proxy/questions/${examId}/${q.id}`,
         {
           method: 'PUT',
           credentials: 'include',

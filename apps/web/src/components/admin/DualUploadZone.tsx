@@ -167,7 +167,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
       form.append('answerFile', answerFile);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/questions/upload-dual?examId=${examId}`,
+        `/api/proxy/questions/upload-dual?examId=${examId}`,
         { method: 'POST', credentials: 'include', body: form },
       );
 

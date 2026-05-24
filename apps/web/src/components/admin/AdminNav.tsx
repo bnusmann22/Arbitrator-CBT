@@ -57,10 +57,8 @@ export default function AdminNav() {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+    // Route through the Next.js proxy — it clears the Vercel-domain cookie too
+    await fetch('/api/proxy/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   }
 

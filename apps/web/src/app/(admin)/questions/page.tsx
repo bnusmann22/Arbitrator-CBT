@@ -23,7 +23,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'manual',  label: 'Add Manually',     icon: '✏️' },
 ];
 
-const API = process.env.NEXT_PUBLIC_API_URL!;
+const API = '/api/proxy';
 
 export default function QuestionsPage() {
   const [exams, setExams] = useState<Exam[]>([]);

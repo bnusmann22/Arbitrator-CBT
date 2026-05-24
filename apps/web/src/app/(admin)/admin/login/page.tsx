@@ -122,13 +122,13 @@ export default function AdminLoginPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 35000);
 
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+      // Call the Next.js login proxy (same-origin) — it sets the auth cookie
+      // on the Vercel domain and forwards credentials to Railway server-to-server.
       const res = await fetch(
-        `${apiBase}/auth/admin/login`,
+        '/api/auth/admin',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             email: values.email.trim().toLowerCase(),
             password: values.password,

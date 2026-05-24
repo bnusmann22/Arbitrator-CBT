@@ -95,7 +95,7 @@ export default function UploadZone({ examId, onSuccess, disabled = false }: Uplo
       form.append('file', selectedFile);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/questions/upload?examId=${examId}`,
+        `/api/proxy/questions/upload?examId=${examId}`,
         {
           method: 'POST',
           credentials: 'include',

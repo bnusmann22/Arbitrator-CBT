@@ -54,7 +54,7 @@ export default function CandidateTable({ candidates, onDelete }: CandidateTableP
 
     setDeletingId(c.id);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/candidates/${c.id}`, {
+      await fetch(`/api/proxy/candidates/${c.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });

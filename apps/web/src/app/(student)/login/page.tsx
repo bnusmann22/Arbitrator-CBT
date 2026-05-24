@@ -121,13 +121,13 @@ export default function CandidateLoginPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 35000);
 
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+      // Call the Next.js login proxy (same-origin) — it sets the auth cookie
+      // on the Vercel domain and forwards credentials to Railway server-to-server.
       const res = await fetch(
-        `${apiBase}/auth/candidate/login`,
+        '/api/auth/candidate',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             name: values.name.trim(),
             email: values.email.trim().toLowerCase(),

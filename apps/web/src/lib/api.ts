@@ -1,10 +1,20 @@
 import axios from 'axios';
 
-// Strip accidental trailing slash so `${API_BASE_URL}/path` never produces `//path`
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+/**
+ * All authenticated API calls are routed through the Next.js proxy
+ * (/api/proxy/...) so they remain same-origin (Vercel domain).
+ * The proxy reads the auth_token cookie that was set at login and
+ * forwards it to the Railway backend as a server-to-server Cookie header.
+ *
+ * In local dev, the proxy is still used and it forwards to
+ * NEXT_PUBLIC_API_URL (defaults to http://localhost:4000/api).
+ */
+const API_BASE_URL = '/api/proxy';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  // withCredentials is still needed so the browser sends the same-origin
+  // auth_token cookie with each request to /api/proxy/*.
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

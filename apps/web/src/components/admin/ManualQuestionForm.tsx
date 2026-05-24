@@ -17,7 +17,7 @@ const OPTION_COLOURS: Record<string, string> = {
   D: '#f59e0b', // amber
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL!;
+const API = '/api/proxy';
 
 export default function ManualQuestionForm({ examId, onSuccess }: Props) {
   const [questionText, setQuestionText] = useState('');
