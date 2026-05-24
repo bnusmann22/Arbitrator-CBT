@@ -8,6 +8,282 @@ import ManualQuestionForm from '@/components/admin/ManualQuestionForm';
 import QuestionPreview from '@/components/admin/QuestionPreview';
 import styles from './page.module.css';
 
+// ── Upload Format Guide Modal ─────────────────────────────────────────────────
+
+function GuideModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Upload format guide"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.65)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 1000,
+        padding: '1.5rem',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-primary)',
+          borderRadius: 'var(--radius-xl)',
+          width: '100%',
+          maxWidth: 720,
+          maxHeight: '88vh',
+          overflowY: 'auto',
+          padding: '2rem',
+          position: 'relative',
+        }}
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          aria-label="Close guide"
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            background: 'none', border: 'none',
+            color: 'var(--text-muted)', fontSize: 20,
+            cursor: 'pointer', lineHeight: 1, padding: 4,
+          }}
+        >✕</button>
+
+        <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
+          📤 Upload Format Guide
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+          How to structure your files so the parser reads them correctly.
+        </p>
+
+        {/* ── Section 1: Single file upload ── */}
+        <Section title="📁 Single File Upload" accent="#6366f1">
+          <P>
+            Upload <strong>one PDF or DOCX</strong> that contains both the questions and (optionally)
+            the answers. The parser detects the most common MCQ layouts automatically.
+          </P>
+
+          <SubHeading>Supported question formats</SubHeading>
+          <CodeBlock>{`1. What is arbitration?
+A. A binding dispute resolution process
+B. A form of mediation
+C. A court trial
+D. None of the above
+
+2. Who appoints the arbitrator?
+(A) The plaintiff
+(B) The defendant
+(C) Both parties by agreement
+(D) The presiding judge`}</CodeBlock>
+
+          <SubHeading>Embedding the answer in the file</SubHeading>
+          <P>If answers are included, add them after the options using any of these patterns:</P>
+          <CodeBlock>{`Answer: C          ← after each question
+Ans: C
+Correct Answer: C
+
+Answer Key:        ← section at the end
+1. A
+2. C
+3. B`}</CodeBlock>
+
+          <P style={{ marginTop: 8 }}>
+            Questions whose answer cannot be detected are flagged <Warn>⚠ Review</Warn> —
+            use the dropdown + <Confirm>✓</Confirm> button in the table to set the correct option.
+            <strong> Option A is fully selectable</strong> — click ✓ to confirm it even if it is already shown.
+          </P>
+        </Section>
+
+        {/* ── Section 2: Dual file upload ── */}
+        <Section title="🗝 Dual File Upload" accent="#10b981" style={{ marginTop: '1.75rem' }}>
+          <P>
+            Upload two separate files: a <strong>question file</strong> and a <strong>answer key file</strong>.
+            Answers are matched to questions by their number — the question file never needs to contain answers.
+          </P>
+
+          <SubHeading>Question file (PDF or DOCX)</SubHeading>
+          <P>Same format as single-file upload above. Every question must start with a number.</P>
+          <CodeBlock>{`1. What does "ex aequo et bono" mean?
+A. According to law
+B. According to what is fair and good
+C. Without prejudice
+D. Under protest
+
+2. Which body administers ICSID arbitration?
+A. ICC
+B. UNCITRAL
+C. World Bank Group
+D. WTO`}</CodeBlock>
+
+          <SubHeading>Answer key file — accepted formats &amp; file types</SubHeading>
+          <P>The answer key can be a <strong>PDF, DOCX, TXT, or image</strong> (JPG, PNG, BMP, TIFF, GIF, WebP).</P>
+
+          <P><strong>One answer per line (most reliable):</strong></P>
+          <CodeBlock>{`1. B
+2. C
+3. A
+4. D`}</CodeBlock>
+
+          <P><strong>Separators — any of these work:</strong></P>
+          <CodeBlock>{`1) B     ← parenthesis
+2: C     ← colon
+3 - A    ← dash
+4 D      ← space only`}</CodeBlock>
+
+          <P><strong>Inline on one line:</strong></P>
+          <CodeBlock>{`1.B 2.C 3.A 4.D
+1-B, 2-C, 3-A, 4-D`}</CodeBlock>
+
+          <P><strong>Table / Markdown format:</strong></P>
+          <CodeBlock>{`| 1 | B |
+| 2 | C |
+| 3 | A |`}</CodeBlock>
+
+          <P><strong>Header lines are ignored automatically:</strong></P>
+          <CodeBlock>{`Answer Key:
+Answers:
+Correct Answers:`}</CodeBlock>
+
+          <SubHeading>Image answer keys (OCR)</SubHeading>
+          <P>
+            Upload a photo or scan of a printed or handwritten answer sheet.
+            The system uses <strong>computer vision (OCR)</strong> to read the numbers and letters.
+            For best results: good lighting, clear handwriting, horizontal orientation,
+            and answers written as <code>1. B</code> or <code>1) B</code>.
+          </P>
+
+          <SubHeading>How matching works</SubHeading>
+          <P>
+            After parsing both files, the system aligns each answer-key entry to the question with the
+            same number. For example, answer key line <code>5. C</code> is matched to question #5.
+            Unmatched questions are flagged <Warn>⚠ Review</Warn>.
+          </P>
+        </Section>
+
+        {/* Close button at bottom */}
+        <div style={{ marginTop: '1.75rem', textAlign: 'center' }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '0.6rem 2rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--accent-primary)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              fontSize: 'var(--text-sm)',
+              cursor: 'pointer',
+            }}
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Small helper sub-components ──────────────────────────────────────────────
+
+function Section({
+  title, accent, children, style,
+}: {
+  title: string; accent: string; children: React.ReactNode; style?: React.CSSProperties;
+}) {
+  return (
+    <div style={{
+      borderLeft: `3px solid ${accent}`,
+      paddingLeft: '1rem',
+      ...style,
+    }}>
+      <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function SubHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{
+      fontSize: 'var(--text-xs)',
+      fontWeight: 700,
+      color: 'var(--text-secondary)',
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+      marginTop: '1rem',
+      marginBottom: '0.4rem',
+    }}>
+      {children}
+    </p>
+  );
+}
+
+function P({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '0.5rem', ...style }}>
+      {children}
+    </p>
+  );
+}
+
+function CodeBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <pre style={{
+      background: 'var(--bg-tertiary)',
+      border: '1px solid var(--border-subtle)',
+      borderRadius: 'var(--radius-md)',
+      padding: '0.75rem 1rem',
+      fontSize: 12,
+      fontFamily: 'var(--font-mono)',
+      color: 'var(--text-primary)',
+      overflowX: 'auto',
+      lineHeight: 1.7,
+      marginBottom: '0.75rem',
+      whiteSpace: 'pre',
+    }}>
+      {children}
+    </pre>
+  );
+}
+
+function Warn({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 600,
+      color: 'var(--accent-warning)',
+      background: 'var(--accent-warning-glow)',
+      border: '1px solid hsla(38,95%,60%,0.3)',
+      borderRadius: 99,
+      padding: '1px 7px',
+      whiteSpace: 'nowrap',
+    }}>
+      {children}
+    </span>
+  );
+}
+
+function Confirm({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: 20, height: 20,
+      borderRadius: 4,
+      border: '1px solid hsla(152,70%,50%,0.4)',
+      background: 'var(--accent-success-glow)',
+      color: 'var(--accent-success)',
+      fontSize: 11, fontWeight: 700,
+      verticalAlign: 'middle',
+    }}>
+      {children}
+    </span>
+  );
+}
+
 interface Exam {
   id: string;
   title: string;
@@ -39,6 +315,7 @@ export default function QuestionsPage() {
   } | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('upload');
+  const [showGuide, setShowGuide] = useState(false);
 
   // ── Load exams ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -146,6 +423,7 @@ export default function QuestionsPage() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <AdminNav />
+      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
       <main className={styles.page}>
         {/* Header */}
@@ -309,6 +587,34 @@ export default function QuestionsPage() {
             to get started.
           </div>
         )}
+
+        {/* ── Page footer ──────────────────────────────────────────── */}
+        <div style={{
+          marginTop: 'var(--space-3xl)',
+          paddingTop: 'var(--space-lg)',
+          borderTop: '1px solid var(--border-subtle)',
+          textAlign: 'center',
+        }}>
+          <button
+            onClick={() => setShowGuide(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              fontSize: 12,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textDecorationStyle: 'dotted',
+              textUnderlineOffset: 3,
+              padding: '4px 8px',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            ? How do the upload formats work?
+          </button>
+        </div>
       </main>
     </div>
   );
