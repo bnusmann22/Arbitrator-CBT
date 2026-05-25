@@ -31,7 +31,10 @@
       "Bash(cd \"c:/Users/admin/Desktop/Arbitration_Sandbox/apps/web\" && npx vercel env pull --environment=production /tmp/vercel-env-check.txt 2>&1 && grep NEXT_PUBLIC_API_URL /tmp/vercel-env-check.txt)",
       "Read(//tmp/**)",
       "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\auth\\\\[type]\")",
-      "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\proxy\\\\[...path]\")"
+      "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\proxy\\\\[...path]\")",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "Bash(Select-String \"firebase|class-validator|class-transformer\")",
+      "WebFetch(domain:arbitrator-cbt-production.up.railway.app)"
     ],
     "additionalDirectories": [
       "c:\\Users\\admin\\Desktop\\Arbitration_Sandbox\\apps\\web\\src\\app\\api\\auth",

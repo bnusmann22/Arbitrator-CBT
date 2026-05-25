@@ -13,6 +13,13 @@ interface QuestionPreviewProps {
 
 const OPTIONS = ['A', 'B', 'C', 'D'] as const;
 
+const OPTION_COLOURS: Record<string, string> = {
+  A: '#6366f1',
+  B: '#0ea5e9',
+  C: '#10b981',
+  D: '#f59e0b',
+};
+
 function TrashIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,14 +27,6 @@ function TrashIcon() {
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
       <path d="M10 11v6"/><path d="M14 11v6"/>
       <path d="M9 6V4h6v2"/>
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12"/>
     </svg>
   );
 }
@@ -40,16 +39,7 @@ export default function QuestionPreview({
 }: QuestionPreviewProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [savingId, setSavingId]     = useState<string | null>(null);
-
-  /**
-   * Staged (not-yet-saved) selections for review questions.
-   * onChange on the <select> only updates this — no auto-save —
-   * so the admin can always press ✓ to confirm even when the
-   * dropdown already shows A (the parser's default fallback).
-   */
-  const [pendingAnswers, setPendingAnswers] = useState<
-    Record<string, 'A' | 'B' | 'C' | 'D'>
-  >({});
+  const [savingAnswer, setSavingAnswer] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
 
   async function handleDelete(q: ParsedQuestionRow) {
     if (!confirm(`Delete question #${q.order}? This cannot be undone.`)) return;
@@ -69,13 +59,13 @@ export default function QuestionPreview({
   }
 
   /**
-   * Explicit save — called ONLY when the admin clicks ✓.
-   * This is intentional: onChange alone no longer triggers a save,
-   * which means selecting A (the parser default) then clicking ✓
-   * will properly persist A even though "nothing changed" in the select.
+   * Save answer — called immediately when an option button is clicked.
+   * Highlights the clicked button during the network call via savingAnswer,
+   * then clears on completion. Works for all options including A.
    */
   async function saveAnswer(q: ParsedQuestionRow, answer: 'A' | 'B' | 'C' | 'D') {
     setSavingId(q.id);
+    setSavingAnswer(answer);
     try {
       await fetch(
         `/api/proxy/questions/${examId}/${q.id}`,
@@ -86,17 +76,12 @@ export default function QuestionPreview({
           body: JSON.stringify({ correctAnswer: answer }),
         },
       );
-      // Clear pending state; parent flips needsReview → false
-      setPendingAnswers((prev) => {
-        const next = { ...prev };
-        delete next[q.id];
-        return next;
-      });
       onAnswerChange?.(q.id, answer);
     } catch {
       alert('Failed to update answer. Please try again.');
     } finally {
       setSavingId(null);
+      setSavingAnswer(null);
     }
   }
 
@@ -124,10 +109,6 @@ export default function QuestionPreview({
               </tr>
             ) : (
               questions.map((q) => {
-                // The value shown in the select: use staged selection if present,
-                // otherwise fall back to the server value.
-                const selectValue: 'A' | 'B' | 'C' | 'D' =
-                  pendingAnswers[q.id] ?? q.correctAnswer;
                 const isSaving = savingId === q.id;
 
                 return (
@@ -153,44 +134,53 @@ export default function QuestionPreview({
                     <td className={styles.answer}>
                       {q.needsReview ? (
                         /*
-                         * Review questions: staged select + explicit ✓ button.
-                         *
-                         * Why a button instead of auto-save on onChange?
-                         * The parser defaults correctAnswer to 'A' when no answer
-                         * is detected, so the select initially shows A. The browser
-                         * never fires onChange when the user re-selects an already-
-                         * selected value, making A unreachable via onChange alone.
-                         * The ✓ button saves whatever is currently shown — including A.
+                         * Review questions: four inline letter buttons — A B C D.
+                         * Clicking any button immediately saves that answer.
+                         * The active button is highlighted using OPTION_COLOURS.
+                         * This works for every option including A, since clicking
+                         * always fires the handler regardless of prior state.
                          */
                         <div className={styles.answerCell}>
-                          <select
-                            value={selectValue}
-                            onChange={(e) => {
-                              const val = e.target.value as 'A' | 'B' | 'C' | 'D';
-                              setPendingAnswers((prev) => ({ ...prev, [q.id]: val }));
-                            }}
-                            disabled={isSaving}
-                            className={styles.answerSelect}
-                            aria-label={`Correct answer for question ${q.order}`}
-                          >
-                            {OPTIONS.map((o) => (
-                              <option key={o} value={o}>{o}</option>
-                            ))}
-                          </select>
-
-                          <button
-                            className={styles.confirmBtn}
-                            onClick={() => saveAnswer(q, selectValue)}
-                            disabled={isSaving}
-                            aria-label="Confirm answer"
-                            title="Save this answer"
-                          >
-                            {isSaving ? (
-                              <span className={styles.savingDot} />
-                            ) : (
-                              <CheckIcon />
-                            )}
-                          </button>
+                          {OPTIONS.map((opt) => {
+                            // Highlight the in-flight answer while saving,
+                            // or the current saved answer while idle.
+                            const isActive = isSaving
+                              ? savingAnswer === opt
+                              : q.correctAnswer === opt;
+                            const colour = OPTION_COLOURS[opt];
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => saveAnswer(q, opt)}
+                                disabled={isSaving}
+                                aria-label={`Set correct answer to ${opt}`}
+                                title={`Mark ${opt} as correct`}
+                                style={{
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: 6,
+                                  border: `2px solid ${isActive ? colour : 'var(--border-primary)'}`,
+                                  background: isActive ? `${colour}22` : 'var(--bg-tertiary)',
+                                  color: isActive ? colour : 'var(--text-muted)',
+                                  fontWeight: 800,
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: 12,
+                                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                                  opacity: isSaving && !isActive ? 0.35 : 1,
+                                  transition: 'all 0.12s',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  boxShadow: isActive ? `0 0 0 3px ${colour}33` : 'none',
+                                }}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                          {isSaving && <span className={styles.savingDot} style={{ marginLeft: 4 }} />}
                         </div>
                       ) : (
                         <span className={styles.answerBadge}>{q.correctAnswer}</span>
@@ -222,7 +212,7 @@ export default function QuestionPreview({
             </span>
             {reviewCount > 0 && (
               <span className={styles.reviewCount}>
-                ⚠ {reviewCount} need answer review — select an option and click ✓
+                ⚠ {reviewCount} need answer review — click the correct letter to save
               </span>
             )}
           </div>

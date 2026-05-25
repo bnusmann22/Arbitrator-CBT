@@ -3,6 +3,7 @@ import {
   Inject,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
@@ -253,9 +254,28 @@ export class QuestionService {
       .doc(examId)
       .collection('questions');
 
-    // Determine next order number
-    const snap = await questionsRef.orderBy('order', 'desc').limit(1).get();
-    const lastOrder = snap.empty ? 0 : (snap.docs[0].data().order ?? 0);
+    // ── Determine next order number ───────────────────────────────────────
+    // Use count() aggregation — no index required, works on empty collections.
+    // Falls back to orderBy if count() is unavailable, then to Date.now() as
+    // a last resort so the question always gets saved with a unique order.
+    let nextOrder: number;
+    try {
+      const countSnap = await questionsRef.count().get();
+      nextOrder = (countSnap.data().count ?? 0) + 1;
+    } catch (countErr) {
+      this.logger.warn(
+        `count() failed for exam ${examId}, trying orderBy: ${(countErr as Error).message}`,
+      );
+      try {
+        const snap = await questionsRef.orderBy('order', 'desc').limit(1).get();
+        nextOrder = snap.empty ? 1 : ((snap.docs[0].data().order as number) ?? 0) + 1;
+      } catch (orderErr) {
+        this.logger.warn(
+          `orderBy also failed for exam ${examId}, using timestamp: ${(orderErr as Error).message}`,
+        );
+        nextOrder = Date.now(); // unique, always > sequential numbers
+      }
+    }
 
     const now = admin.firestore.Timestamp.now();
     const ref = questionsRef.doc();
@@ -263,24 +283,35 @@ export class QuestionService {
     const data = {
       examId,
       questionText: dto.questionText,
-      options: dto.options,
+      options: {
+        A: String(dto.options?.A ?? ''),
+        B: String(dto.options?.B ?? ''),
+        C: String(dto.options?.C ?? ''),
+        D: String(dto.options?.D ?? ''),
+      },
       correctAnswer: dto.correctAnswer,
       needsReview: false,
-      order: lastOrder + 1,
+      order: nextOrder,
       sourceFile: 'manual',
       createdAt: now,
     };
 
-    const batch = this.db.batch();
-    batch.set(ref, data);
-    batch.update(this.db.collection('exams').doc(examId), {
-      questionCount: admin.firestore.FieldValue.increment(1),
-      updatedAt: now,
-    });
+    // ── Write to Firestore ────────────────────────────────────────────────
+    try {
+      const batch = this.db.batch();
+      batch.set(ref, data);
+      batch.update(this.db.collection('exams').doc(examId), {
+        questionCount: admin.firestore.FieldValue.increment(1),
+        updatedAt: now,
+      });
+      await batch.commit();
+    } catch (batchErr) {
+      const msg = (batchErr as Error).message ?? 'Unknown Firestore error';
+      this.logger.error(`Batch commit failed for exam ${examId}: ${msg}`, (batchErr as Error).stack);
+      throw new InternalServerErrorException(`Failed to save question: ${msg}`);
+    }
 
-    await batch.commit();
     this.logger.log(`Manual question added to exam ${examId}: ${ref.id}`);
-
     return this.docToQuestion(ref.id, examId, data);
   }
 

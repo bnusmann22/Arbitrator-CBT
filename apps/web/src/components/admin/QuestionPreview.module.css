@@ -120,7 +120,7 @@
 /* ── Correct answer ───────────────────────────────── */
 
 .answer {
-  width: 120px;
+  width: 160px;
 }
 
 .answerBadge {
@@ -138,56 +138,12 @@
   border: 1px solid hsla(152, 70%, 50%, 0.3);
 }
 
-/* Select + confirm button for review questions */
+/* Inline A/B/C/D button row for review questions */
 
 .answerCell {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.answerSelect {
-  background: var(--bg-tertiary);
-  color: var(--accent-warning);
-  border: 1px solid hsla(38, 95%, 60%, 0.4);
-  border-radius: var(--radius-sm);
-  padding: 4px 6px;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  cursor: pointer;
-  outline: none;
-  width: 52px;
-}
-
-.answerSelect:focus {
-  border-color: var(--accent-primary);
-}
-
-.confirmBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius-sm);
-  border: 1px solid hsla(152, 70%, 50%, 0.4);
-  background: var(--accent-success-glow);
-  color: var(--accent-success);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all var(--transition-fast);
-  line-height: 0;
-}
-
-.confirmBtn:hover:not(:disabled) {
-  background: hsla(152, 70%, 50%, 0.2);
-  border-color: var(--accent-success);
-}
-
-.confirmBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  gap: 4px;
 }
 
 .savingDot {
