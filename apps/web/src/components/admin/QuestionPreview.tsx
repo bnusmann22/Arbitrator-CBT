@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TriangleAlert } from 'lucide-react';
 import styles from './QuestionPreview.module.css';
 import { ParsedQuestionRow } from './UploadZone';
 
@@ -118,7 +119,9 @@ export default function QuestionPreview({
                     <td className={styles.questionText}>
                       {q.questionText}
                       {q.needsReview && (
-                        <span className={styles.reviewBadge}>⚠ Review</span>
+                        <span className={styles.reviewBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <TriangleAlert size={11} style={{ flexShrink: 0 }} /> Review
+                        </span>
                       )}
                     </td>
 
@@ -212,7 +215,9 @@ export default function QuestionPreview({
             </span>
             {reviewCount > 0 && (
               <span className={styles.reviewCount}>
-                ⚠ {reviewCount} need answer review — click the correct letter to save
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <TriangleAlert size={13} style={{ flexShrink: 0 }} /> {reviewCount} need answer review — click the correct letter to save
+                </span>
               </span>
             )}
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Landmark } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import styles from './page.module.css';
@@ -163,7 +164,7 @@ export default function AdminLoginPage() {
       <div className={styles.card}>
         {/* Header */}
         <div className={styles.header}>
-          <div className={styles.logoIcon}>🏛️</div>
+          <div className={styles.logoIcon}><Landmark size={36} strokeWidth={1.5} /></div>
           <span className={styles.badge}>Admin Portal</span>
           <h1 className={styles.title}>Welcome back</h1>
           <p className={styles.subtitle}>Sign in to manage examinations</p>

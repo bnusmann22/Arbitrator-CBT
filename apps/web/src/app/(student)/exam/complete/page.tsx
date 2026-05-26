@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { CheckCircle2, MailOpen, Search, FileText, Smartphone } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 export default function ExamCompletePage() {
@@ -107,10 +109,16 @@ export default function ExamCompletePage() {
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 20px',
-            fontSize: '2.4rem',
             animation: 'fadeIn 0.5s ease-out',
           }}>
-            ✅
+            <motion.span
+              style={{ display: 'inline-flex' }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 16, delay: 0.1 }}
+            >
+              <CheckCircle2 size={44} color="#10b981" strokeWidth={1.5} />
+            </motion.span>
           </div>
 
           <h1 style={{
@@ -157,10 +165,9 @@ export default function ExamCompletePage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.2rem',
               flexShrink: 0,
             }}>
-              📬
+              <MailOpen size={22} color="#6366f1" strokeWidth={1.5} />
             </div>
             <div>
               <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#c7d2fe', marginBottom: 6 }}>
@@ -176,9 +183,9 @@ export default function ExamCompletePage() {
           {/* What happens next */}
           <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              { icon: '🔍', text: 'Administrator reviews and generates your result' },
-              { icon: '📄', text: 'A result certificate is prepared with your score' },
-              { icon: '📲', text: 'Results sent to you via email or WhatsApp' },
+              { icon: <Search size={16} color="#6366f1" />, text: 'Administrator reviews and generates your result' },
+              { icon: <FileText size={16} color="#6366f1" />, text: 'A result certificate is prepared with your score' },
+              { icon: <Smartphone size={16} color="#6366f1" />, text: 'Results sent to you via email or WhatsApp' },
             ].map(({ icon, text }) => (
               <div key={text} style={{
                 display: 'flex',
@@ -187,7 +194,7 @@ export default function ExamCompletePage() {
                 fontSize: '0.8rem',
                 color: '#475569',
               }}>
-                <span style={{ fontSize: '1rem', width: 24, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
+                <span style={{ width: 24, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>{icon}</span>
                 {text}
               </div>
             ))}

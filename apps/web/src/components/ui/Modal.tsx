@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -63,7 +64,7 @@ export default function Modal({
                 onClick={onClose}
                 aria-label="Close modal"
               >
-                ✕
+                <X size={16} />
               </button>
             )}
           </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { XCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { useExamTimer } from '@/hooks/useExamTimer';
 import { useTabMonitor } from '@/hooks/useTabMonitor';
@@ -266,7 +267,7 @@ export default function ExamPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md text-center">
-          <div className="text-5xl mb-4">❌</div>
+          <div className="mb-4 flex justify-center"><XCircle size={56} color="#ef4444" strokeWidth={1.5} /></div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Unable to Start Exam</h1>
           <p className="text-gray-600 text-sm mb-6">{error}</p>
           <button

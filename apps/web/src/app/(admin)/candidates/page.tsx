@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
+import { CheckCircle2, MousePointerClick } from 'lucide-react';
 import AdminNav from '@/components/admin/AdminNav';
 import CandidateTable, { CandidateRow } from '@/components/admin/CandidateTable';
 import Input from '@/components/ui/Input';
@@ -106,7 +107,7 @@ export default function CandidatesPage() {
       });
       setCandidates((prev) => [candidate, ...prev]);
       setSingleForm({ name: '', email: '' });
-      setSingleMsg({ type: 'success', text: `✅ ${candidate.name} added — code: ${candidate.examCode}` });
+      setSingleMsg({ type: 'success', text: `${candidate.name} added — code: ${candidate.examCode}` });
     } catch (err: unknown) {
       setSingleMsg({
         type: 'error',
@@ -142,7 +143,7 @@ export default function CandidatesPage() {
       setBulkText('');
       setBulkMsg({
         type: 'success',
-        text: `✅ ${result.created} added${result.skipped > 0 ? `, ${result.skipped} skipped (duplicates)` : ''}`,
+        text: `${result.created} added${result.skipped > 0 ? `, ${result.skipped} skipped (duplicates)` : ''}`,
       });
     } catch (err: unknown) {
       setBulkMsg({
@@ -243,7 +244,9 @@ export default function CandidatesPage() {
                   />
 
                   {singleMsg && (
-                    <p className={singleMsg.type === 'success' ? styles.successMsg : styles.errorMsg}>
+                    <p className={singleMsg.type === 'success' ? styles.successMsg : styles.errorMsg}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {singleMsg.type === 'success' && <CheckCircle2 size={14} style={{ flexShrink: 0 }} />}
                       {singleMsg.text}
                     </p>
                   )}
@@ -269,7 +272,9 @@ export default function CandidatesPage() {
                   />
 
                   {bulkMsg && (
-                    <p className={bulkMsg.type === 'success' ? styles.successMsg : styles.errorMsg}>
+                    <p className={bulkMsg.type === 'success' ? styles.successMsg : styles.errorMsg}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {bulkMsg.type === 'success' && <CheckCircle2 size={14} style={{ flexShrink: 0 }} />}
                       {bulkMsg.text}
                     </p>
                   )}
@@ -305,7 +310,8 @@ export default function CandidatesPage() {
           </div>
         ) : (
           <div className={styles.noExamHint}>
-            👆 Select an exam above to manage its candidates.
+            <MousePointerClick size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+            Select an exam above to manage its candidates.
           </div>
         )}
       </main>

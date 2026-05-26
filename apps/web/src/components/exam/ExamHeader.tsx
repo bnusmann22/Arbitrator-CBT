@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { TriangleAlert } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface ExamHeaderProps {
@@ -95,7 +96,7 @@ export default function ExamHeader({
               }`,
               flexShrink: 0,
             }}>
-              ⚠ {tabSwitchCount}/{MAX_SWITCHES}
+              <TriangleAlert size={11} style={{ flexShrink: 0 }} /> {tabSwitchCount}/{MAX_SWITCHES}
             </div>
           )}
 
@@ -220,7 +221,7 @@ export default function ExamHeader({
                 : 'rgba(245,158,11,0.25)'
             }`,
           }}>
-            <span>⚠</span>
+            <TriangleAlert size={12} style={{ flexShrink: 0 }} />
             {tabSwitchCount} / {MAX_SWITCHES} switches
           </div>
         )}

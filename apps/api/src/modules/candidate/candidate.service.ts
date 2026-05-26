@@ -217,7 +217,14 @@ export class CandidateService {
     if (!snap.exists) throw new NotFoundException(`Candidate ${id} not found.`);
 
     const examId = snap.data()!.examId as string;
-    await snap.ref.delete();
+
+    // Delete candidate + orphaned exam session atomically so the auto-submit
+    // cron never picks up a session whose candidate document no longer exists.
+    const batch = this.db.batch();
+    batch.delete(snap.ref);
+    batch.delete(this.db.collection('exam_sessions').doc(id));
+    await batch.commit();
+
     await this.db.collection('exams').doc(examId).update({
       candidateCount: admin.firestore.FieldValue.increment(-1),
     });

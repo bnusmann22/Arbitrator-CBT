@@ -34,7 +34,9 @@
       "Bash(mkdir -p \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\apps\\\\web\\\\src\\\\app\\\\api\\\\proxy\\\\[...path]\")",
       "mcp__claude_ai_Vercel__get_runtime_logs",
       "Bash(Select-String \"firebase|class-validator|class-transformer\")",
-      "WebFetch(domain:arbitrator-cbt-production.up.railway.app)"
+      "WebFetch(domain:arbitrator-cbt-production.up.railway.app)",
+      "Bash(node -e \"require\\('lucide-react'\\)\")",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\admin\\\\Desktop\\\\Arbitration_Sandbox\\\\node_modules\\\\lucide-react\\\\dist\\\\esm\\\\icons\" | Where-Object { $_.Name -match 'triangle|alert|siren|trophy|medal|landmark|clipboard|folder|key|ban|smartphone|mail|search|refresh|bar-chart|trending|upload' } | Select-Object Name | Sort-Object Name)"
     ],
     "additionalDirectories": [
       "c:\\Users\\admin\\Desktop\\Arbitration_Sandbox\\apps\\web\\src\\app\\api\\auth",

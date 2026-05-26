@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TriangleAlert, CheckCircle2 } from 'lucide-react';
 import type { ParsedQuestionRow } from './UploadZone';
 
 interface Props {
@@ -217,7 +218,9 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
           color: 'var(--accent-danger)',
           fontSize: 'var(--text-sm)',
         }}>
-          ⚠ {error}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <TriangleAlert size={14} style={{ flexShrink: 0 }} /> {error}
+          </span>
         </div>
       )}
 
@@ -231,7 +234,9 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
           fontSize: 'var(--text-sm)',
           fontWeight: 600,
         }}>
-          ✅ {success}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> {success}
+          </span>
         </div>
       )}
 

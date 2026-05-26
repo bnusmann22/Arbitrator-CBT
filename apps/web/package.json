@@ -10,17 +10,18 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
+    "@arbitration/types": "*",
+    "axios": "^1.7.0",
+    "framer-motion": "^12.0.0",
+    "jose": "^6.0.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "lucide-react": "^1.16.0",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "axios": "^1.7.0",
-    "jose": "^6.0.0",
-    "framer-motion": "^12.0.0",
-    "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4",
     "react-dropzone": "^14.3.5",
-    "react-hot-toast": "^2.4.1",
-    "@arbitration/types": "*"
+    "react-hot-toast": "^2.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

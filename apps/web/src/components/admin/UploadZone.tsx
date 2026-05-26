@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, DragEvent, ChangeEvent } from 'react';
+import { Check, TriangleAlert } from 'lucide-react';
 import styles from './UploadZone.module.css';
 
 interface UploadZoneProps {
@@ -165,7 +166,9 @@ export default function UploadZone({ examId, onSuccess, disabled = false }: Uplo
                 <line x1="12" y1="18" x2="12" y2="12"/>
               </svg>
             </div>
-            <p className={styles.fileName}>✓ {selectedFile.name}</p>
+            <p className={styles.fileName} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Check size={14} color="#10b981" style={{ flexShrink: 0 }} /> {selectedFile.name}
+            </p>
             <p className={styles.fileSize}>{formatBytes(selectedFile.size)}</p>
             <p className={styles.hint}>Click Upload to parse questions, or click here to change file</p>
           </>
@@ -195,7 +198,9 @@ export default function UploadZone({ examId, onSuccess, disabled = false }: Uplo
 
       {error && (
         <p className={styles.error} style={{ marginTop: 'var(--space-sm)' }}>
-          ⚠ {error}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <TriangleAlert size={14} style={{ flexShrink: 0 }} /> {error}
+          </span>
         </p>
       )}
 

@@ -1,6 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  X,
+  Upload,
+  Folder,
+  KeyRound,
+  Pencil,
+  CheckCircle2,
+  TriangleAlert,
+  Check,
+  MousePointerClick,
+} from 'lucide-react';
 import AdminNav from '@/components/admin/AdminNav';
 import UploadZone, { UploadResult, ParsedQuestionRow } from '@/components/admin/UploadZone';
 import DualUploadZone from '@/components/admin/DualUploadZone';
@@ -50,17 +61,17 @@ function GuideModal({ onClose }: { onClose: () => void }) {
             color: 'var(--text-muted)', fontSize: 20,
             cursor: 'pointer', lineHeight: 1, padding: 4,
           }}
-        >✕</button>
+        ><X size={18} /></button>
 
         <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
-          📤 Upload Format Guide
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Upload size={15} /> Upload Format Guide</span>
         </h2>
         <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
           How to structure your files so the parser reads them correctly.
         </p>
 
         {/* ── Section 1: Single file upload ── */}
-        <Section title="📁 Single File Upload" accent="#6366f1">
+        <Section title="Single File Upload" accent="#6366f1">
           <P>
             Upload <strong>one PDF or DOCX</strong> that contains both the questions and (optionally)
             the answers. The parser detects the most common MCQ layouts automatically.
@@ -91,14 +102,14 @@ Answer Key:        ← section at the end
 3. B`}</CodeBlock>
 
           <P style={{ marginTop: 8 }}>
-            Questions whose answer cannot be detected are flagged <Warn>⚠ Review</Warn> —
-            use the dropdown + <Confirm>✓</Confirm> button in the table to set the correct option.
-            <strong> Option A is fully selectable</strong> — click ✓ to confirm it even if it is already shown.
+            Questions whose answer cannot be detected are flagged <Warn><TriangleAlert size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> Review</Warn> —
+            use the dropdown + <Confirm><Check size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /></Confirm> button in the table to set the correct option.
+            <strong> Option A is fully selectable</strong> — click the confirm button even if it is already shown.
           </P>
         </Section>
 
         {/* ── Section 2: Dual file upload ── */}
-        <Section title="🗝 Dual File Upload" accent="#10b981" style={{ marginTop: '1.75rem' }}>
+        <Section title="Dual File Upload" accent="#10b981" style={{ marginTop: '1.75rem' }}>
           <P>
             Upload two separate files: a <strong>question file</strong> and a <strong>answer key file</strong>.
             Answers are matched to questions by their number — the question file never needs to contain answers.
@@ -159,7 +170,7 @@ Correct Answers:`}</CodeBlock>
           <P>
             After parsing both files, the system aligns each answer-key entry to the question with the
             same number. For example, answer key line <code>5. C</code> is matched to question #5.
-            Unmatched questions are flagged <Warn>⚠ Review</Warn>.
+            Unmatched questions are flagged <Warn><TriangleAlert size={11} style={{ display: 'inline', verticalAlign: 'middle' }} /> Review</Warn>.
           </P>
         </Section>
 
@@ -293,10 +304,10 @@ interface Exam {
 
 type TabId = 'upload' | 'dual' | 'manual';
 
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'upload',  label: 'Upload File',     icon: '📁' },
-  { id: 'dual',    label: 'Dual Upload',      icon: '🗝' },
-  { id: 'manual',  label: 'Add Manually',     icon: '✏️' },
+const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+  { id: 'upload',  label: 'Upload File',  icon: <Folder size={15} /> },
+  { id: 'dual',    label: 'Dual Upload',  icon: <KeyRound size={15} /> },
+  { id: 'manual',  label: 'Add Manually', icon: <Pencil size={15} /> },
 ];
 
 const API = '/api/proxy';
@@ -525,24 +536,26 @@ export default function QuestionsPage() {
               {uploadResult && (
                 <div className={styles.uploadResult}>
                   {uploadResult.mode === 'manual' ? (
-                    <>✅ Question added successfully</>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> Question added successfully
+                    </span>
                   ) : uploadResult.mode === 'dual' ? (
-                    <>
-                      ✅ Parsed {uploadResult.saved} questions
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> Parsed {uploadResult.saved} questions
                       {uploadResult.matched != null && (
-                        <> — 🗝 {uploadResult.matched} answers matched</>
+                        <> — <KeyRound size={13} style={{ flexShrink: 0 }} /> {uploadResult.matched} answers matched</>
                       )}
                       {uploadResult.needsReview > 0 && (
-                        <> — ⚠ {uploadResult.needsReview} need answer review</>
+                        <> — <TriangleAlert size={13} style={{ flexShrink: 0 }} /> {uploadResult.needsReview} need answer review</>
                       )}
-                    </>
+                    </span>
                   ) : (
-                    <>
-                      ✅ Parsed {uploadResult.saved} questions
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <CheckCircle2 size={14} style={{ flexShrink: 0 }} /> Parsed {uploadResult.saved} questions
                       {uploadResult.needsReview > 0 && (
-                        <> — ⚠ {uploadResult.needsReview} need answer review</>
+                        <> — <TriangleAlert size={13} style={{ flexShrink: 0 }} /> {uploadResult.needsReview} need answer review</>
                       )}
-                    </>
+                    </span>
                   )}
                 </div>
               )}
@@ -580,7 +593,8 @@ export default function QuestionsPage() {
           </>
         ) : (
           <div className={styles.noExamHint}>
-            👆 Select an exam above, or{' '}
+            <MousePointerClick size={15} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+            Select an exam above, or{' '}
             <a href="/dashboard" style={{ color: 'var(--accent-primary)' }}>
               create one on the dashboard
             </a>{' '}

@@ -2,6 +2,17 @@
 
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
+import {
+  ClipboardList,
+  CheckCircle2,
+  Users,
+  BarChart2,
+  PlusCircle,
+  FileText,
+  User,
+  TrendingUp,
+  TriangleAlert,
+} from 'lucide-react';
 import AdminNav from '@/components/admin/AdminNav';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -154,22 +165,22 @@ export default function DashboardPage() {
           ) : (
             <>
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.purple}`}>📋</div>
+                <div className={`${styles.statIcon} ${styles.purple}`}><ClipboardList size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValue}>{stats?.totalExams ?? 0}</div>
                 <div className={styles.statLabel}>Total Exams</div>
               </div>
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.green}`}>✅</div>
+                <div className={`${styles.statIcon} ${styles.green}`}><CheckCircle2 size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValue}>{stats?.activeExams ?? 0}</div>
                 <div className={styles.statLabel}>Active Exams</div>
               </div>
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.blue}`}>👥</div>
+                <div className={`${styles.statIcon} ${styles.blue}`}><Users size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValue}>{stats?.totalCandidates ?? 0}</div>
                 <div className={styles.statLabel}>Candidates</div>
               </div>
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.amber}`}>📊</div>
+                <div className={`${styles.statIcon} ${styles.amber}`}><BarChart2 size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValue}>
                   {stats?.avgScore != null ? `${stats.avgScore}%` : '—'}
                 </div>
@@ -186,22 +197,22 @@ export default function DashboardPage() {
           </div>
           <div className={styles.actionsGrid}>
             <button className={styles.actionCard} onClick={() => setShowModal(true)}>
-              <span className={styles.actionIcon}>➕</span>
+              <span className={styles.actionIcon}><PlusCircle size={22} strokeWidth={1.5} /></span>
               <span className={styles.actionLabel}>Create Exam</span>
               <span className={styles.actionDesc}>Set up a new MCQ exam</span>
             </button>
             <Link href="/questions" className={styles.actionCard}>
-              <span className={styles.actionIcon}>📄</span>
+              <span className={styles.actionIcon}><FileText size={22} strokeWidth={1.5} /></span>
               <span className={styles.actionLabel}>Upload Questions</span>
               <span className={styles.actionDesc}>Import PDF or DOCX</span>
             </Link>
             <Link href="/candidates" className={styles.actionCard}>
-              <span className={styles.actionIcon}>👤</span>
+              <span className={styles.actionIcon}><User size={22} strokeWidth={1.5} /></span>
               <span className={styles.actionLabel}>Add Candidates</span>
               <span className={styles.actionDesc}>Register exam takers</span>
             </Link>
             <Link href="/results" className={styles.actionCard}>
-              <span className={styles.actionIcon}>📈</span>
+              <span className={styles.actionIcon}><TrendingUp size={22} strokeWidth={1.5} /></span>
               <span className={styles.actionLabel}>View Results</span>
               <span className={styles.actionDesc}>Scores and analytics</span>
             </Link>
@@ -375,7 +386,9 @@ export default function DashboardPage() {
 
               {formError && (
                 <p style={{ color: 'var(--accent-danger)', fontSize: 'var(--text-sm)' }}>
-                  ⚠ {formError}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <TriangleAlert size={13} style={{ flexShrink: 0 }} /> {formError}
+                  </span>
                 </p>
               )}
 

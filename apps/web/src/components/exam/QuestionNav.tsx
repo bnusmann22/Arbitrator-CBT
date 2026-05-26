@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { X, TriangleAlert } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 export type QuestionNavStatus =
@@ -131,7 +132,7 @@ function NavContent({
               flexShrink: 0,
             }}
           >
-            ✕
+            <X size={14} />
           </button>
         )}
       </div>
@@ -196,7 +197,7 @@ function NavContent({
           alignItems: 'center',
           gap: 5,
         }}>
-          <span>⚠</span>
+          <TriangleAlert size={12} style={{ flexShrink: 0 }} />
           {skippedCount} question{skippedCount > 1 ? 's' : ''} skipped
         </div>
       )}

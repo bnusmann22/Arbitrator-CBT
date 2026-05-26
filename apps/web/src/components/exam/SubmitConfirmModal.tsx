@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { ClipboardList, TriangleAlert, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface SubmitConfirmModalProps {
   answeredCount: number;
@@ -54,7 +56,9 @@ export default function SubmitConfirmModal({
           background: 'linear-gradient(135deg, #1e293b, #0f172a)',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '2rem', marginBottom: 10 }}>📋</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+            <ClipboardList size={36} color="#6366f1" strokeWidth={1.5} />
+          </div>
           <h2 id="submit-title" style={{
             fontSize: '1.15rem',
             fontWeight: 800,
@@ -136,7 +140,7 @@ export default function SubmitConfirmModal({
               gap: 8,
               lineHeight: 1.5,
             }}>
-              <span style={{ flexShrink: 0 }}>⚠</span>
+              <TriangleAlert size={15} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>
                 {unanswered} question{unanswered > 1 ? 's' : ''} left unanswered.
                 Unanswered questions count as incorrect.
@@ -158,7 +162,14 @@ export default function SubmitConfirmModal({
               alignItems: 'center',
               gap: 8,
             }}>
-              <span>✅</span>
+              <motion.span
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                style={{ display: 'inline-flex' }}
+              >
+                <CheckCircle2 size={15} color="#059669" />
+              </motion.span>
               All questions answered — you&apos;re ready to submit!
             </div>
           )}

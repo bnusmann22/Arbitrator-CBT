@@ -443,13 +443,35 @@ export class ExamService {
     const results = await Promise.allSettled(
       expiredDocs.map(async (doc) => {
         const { candidateId } = doc.data() as SessionDoc;
+
+        // Check whether the candidate document still exists.
+        // If it was deleted without cleaning up the session, mark the session
+        // as submitted so the cron stops retrying it indefinitely.
+        const candidateSnap = await this.db
+          .collection('candidates')
+          .doc(candidateId)
+          .get();
+
+        if (!candidateSnap.exists) {
+          this.logger.warn(
+            `Auto-submit: orphaned session for deleted candidate=${candidateId} — marking submitted to stop retries.`,
+          );
+          await doc.ref.update({ submitted: true });
+          return;
+        }
+
         await this.submitExam(candidateId, 'auto');
       }),
     );
 
-    const failed = results.filter((r) => r.status === 'rejected').length;
-    if (failed > 0) {
-      this.logger.error(`Auto-submit: ${failed} session(s) failed to submit.`);
+    const failed = results.filter((r) => r.status === 'rejected');
+    if (failed.length > 0) {
+      failed.forEach((r) => {
+        const reason = (r as PromiseRejectedResult).reason;
+        this.logger.error(
+          `Auto-submit failure: ${reason instanceof Error ? reason.message : String(reason)}`,
+        );
+      });
     }
   }
 }

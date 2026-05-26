@@ -64,7 +64,12 @@ async function proxyRequest(
   const resContentType = railwayRes.headers.get('content-type') ?? '';
   let response: NextResponse;
 
-  if (resContentType.includes('application/json')) {
+  // 204 / 205 / 304 must have no body — constructing NextResponse with a body
+  // for these status codes throws "Invalid response status code".
+  const NO_BODY_STATUSES = new Set([204, 205, 304]);
+  if (NO_BODY_STATUSES.has(railwayRes.status)) {
+    response = new NextResponse(null, { status: railwayRes.status });
+  } else if (resContentType.includes('application/json')) {
     const data: unknown = await railwayRes.json();
     response = NextResponse.json(data, { status: railwayRes.status });
   } else {

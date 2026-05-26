@@ -2,6 +2,7 @@
 
 import { useState, useRef, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { ClipboardList } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import styles from './page.module.css';
@@ -164,7 +165,7 @@ export default function CandidateLoginPage() {
       <div className={styles.card}>
         {/* Header */}
         <div className={styles.header}>
-          <div className={styles.logoIcon}>📋</div>
+          <div className={styles.logoIcon}><ClipboardList size={36} strokeWidth={1.5} /></div>
           <h1 className={styles.title}>Candidate Login</h1>
           <p className={styles.subtitle}>
             Enter your details exactly as registered.

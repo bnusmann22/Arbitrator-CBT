@@ -1,6 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Users,
+  Upload,
+  BarChart2,
+  CheckCircle2,
+  Ban,
+  ClipboardList,
+  Search,
+  RefreshCw,
+  TriangleAlert,
+  FileText,
+  Medal,
+  ArrowDownToLine,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import AdminNav from '@/components/admin/AdminNav';
 import api from '@/lib/api';
 import styles from './page.module.css';
@@ -85,8 +100,8 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string; dot: string }> = {
     registered:    { label: 'Registered',   cls: styles.badge + ' ' + styles.registered,    dot: '○' },
     'in-progress': { label: 'In Progress',  cls: styles.badge + ' ' + styles.inProgress,    dot: '●' },
-    submitted:     { label: 'Submitted',    cls: styles.badge + ' ' + styles.submitted,     dot: '✓' },
-    disqualified:  { label: 'Disqualified', cls: styles.badge + ' ' + styles.disqualified,  dot: '✕' },
+    submitted:     { label: 'Submitted',    cls: styles.badge + ' ' + styles.submitted,     dot: '·' },
+    disqualified:  { label: 'Disqualified', cls: styles.badge + ' ' + styles.disqualified,  dot: '·' },
   };
   const cfg = map[status] ?? { label: status, cls: styles.badge + ' ' + styles.registered, dot: '○' };
   return <span className={cfg.cls}>{cfg.dot} {cfg.label}</span>;
@@ -115,10 +130,10 @@ function ScoreCell({ score, status }: { score?: number; status: string }) {
 
 function TabSwitchCell({ count }: { count: number }) {
   const cls = count >= 4 ? styles.danger : count >= 2 ? styles.warn : styles.safe;
-  const icon = count >= 4 ? '⚠' : count >= 2 ? '⚠' : '';
+  const showWarn = count >= 2;
   return (
     <span className={`${styles.tabCount} ${cls}`}>
-      {icon && <span style={{ fontSize: '0.7rem' }}>{icon}</span>}
+      {showWarn && <TriangleAlert size={11} style={{ flexShrink: 0, verticalAlign: 'middle' }} />}
       {count}
     </span>
   );
@@ -136,9 +151,9 @@ function RankCell({ index, candidates }: { index: number; candidates: Candidate[
   }
 
   const rank = submitted.findIndex((c) => c.id === candidate.id) + 1;
-  if (rank === 1) return <span className={styles.medal}>🥇</span>;
-  if (rank === 2) return <span className={styles.medal}>🥈</span>;
-  if (rank === 3) return <span className={styles.medal}>🥉</span>;
+  if (rank === 1) return <span className={styles.medal} title="1st place"><Medal size={18} color="#f59e0b" strokeWidth={2} /></span>;
+  if (rank === 2) return <span className={styles.medal} title="2nd place"><Medal size={18} color="#94a3b8" strokeWidth={2} /></span>;
+  if (rank === 3) return <span className={styles.medal} title="3rd place"><Medal size={18} color="#cd7c3a" strokeWidth={2} /></span>;
   return <span className={styles.rank}>{rank}</span>;
 }
 
@@ -274,7 +289,7 @@ export default function ResultsPage() {
             <p className={styles.subtitle}>View scores and submission status for each exam.</p>
           </div>
           <div className={styles.noExams}>
-            <div className={styles.noExamsIcon}>📋</div>
+            <div className={styles.noExamsIcon}><ClipboardList size={40} strokeWidth={1.2} /></div>
             <p className={styles.noExamsText}>No exams found. Create an exam first from the dashboard.</p>
           </div>
         </main>
@@ -317,19 +332,19 @@ export default function ResultsPage() {
             {/* Stats Grid */}
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.gray}`}>👥</div>
+                <div className={`${styles.statIcon} ${styles.gray}`}><Users size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValue}>{candidates.length}</div>
                 <div className={styles.statLabel}>Total Registered</div>
               </div>
 
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.blue}`}>📤</div>
+                <div className={`${styles.statIcon} ${styles.blue}`}><Upload size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValueBlue}>{submitted.length}</div>
                 <div className={styles.statLabel}>Submitted</div>
               </div>
 
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.green}`}>📊</div>
+                <div className={`${styles.statIcon} ${styles.green}`}><BarChart2 size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValueGreen}>
                   {avgScore !== null ? `${avgScore}%` : '—'}
                 </div>
@@ -337,7 +352,7 @@ export default function ResultsPage() {
               </div>
 
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.amber}`}>✅</div>
+                <div className={`${styles.statIcon} ${styles.amber}`}><CheckCircle2 size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValueAmber}>
                   {submitted.length > 0
                     ? `${Math.round((passCount / submitted.length) * 100)}%`
@@ -347,7 +362,7 @@ export default function ResultsPage() {
               </div>
 
               <div className={styles.statCard}>
-                <div className={`${styles.statIcon} ${styles.red}`}>🚫</div>
+                <div className={`${styles.statIcon} ${styles.red}`}><Ban size={22} strokeWidth={1.5} /></div>
                 <div className={styles.statValueRed}>{disqualified.length}</div>
                 <div className={styles.statLabel}>Disqualified</div>
               </div>
@@ -409,7 +424,14 @@ export default function ResultsPage() {
                   onClick={() => void loadCandidates(selectedExam.id)}
                   className={styles.toolbarBtn}
                 >
-                  🔄 Refresh
+                  <motion.span
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    whileHover={{ rotate: 180 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <RefreshCw size={13} /> 
+                  </motion.span>
+                  Refresh
                 </button>
 
                 {candidates.length > 0 && (
@@ -417,7 +439,7 @@ export default function ResultsPage() {
                     onClick={() => exportCsv(candidates, selectedExam.title)}
                     className={styles.exportBtn}
                   >
-                    ⬇ Export CSV
+                    <ArrowDownToLine size={13} style={{ flexShrink: 0 }} /> Export CSV
                   </button>
                 )}
               </div>
@@ -430,7 +452,7 @@ export default function ResultsPage() {
                 </div>
               ) : filtered.length === 0 ? (
                 <div className={styles.empty}>
-                  <div className={styles.emptyIcon}>🔍</div>
+                  <div className={styles.emptyIcon}><Search size={36} strokeWidth={1.2} /></div>
                   <p className={styles.emptyText}>
                     {search
                       ? 'No candidates match your search.'
@@ -530,7 +552,7 @@ export default function ResultsPage() {
                                     Generating…
                                   </>
                                 ) : (
-                                  <>📄 PDF</>
+                                  <><FileText size={12} style={{ flexShrink: 0 }} /> PDF</>
                                 )}
                               </button>
                             ) : (

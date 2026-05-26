@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Landmark } from 'lucide-react';
 import styles from './AdminNav.module.css';
 
 // ── Nav items ─────────────────────────────────────────────────────────────────
@@ -66,7 +67,7 @@ export default function AdminNav() {
     <aside className={styles.sidebar}>
       {/* Brand */}
       <div className={styles.brand}>
-        <span className={styles.brandIcon}>🏛️</span>
+        <span className={styles.brandIcon}><Landmark size={22} strokeWidth={1.5} /></span>
         <div>
           <div className={styles.brandName}>Arbitration</div>
           <div className={styles.brandSub}>Admin Portal</div>

@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { Siren, TriangleAlert } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface WarningOverlayProps {
   tabSwitchCount: number;
@@ -66,7 +68,23 @@ export default function WarningOverlay({
             fontSize: '2rem',
             margin: '0 auto 20px',
           }}>
-            {isCritical ? '🚨' : '⚠️'}
+            {isCritical ? (
+              <motion.span
+                style={{ display: 'inline-flex' }}
+                animate={{ opacity: [1, 0.45, 1] }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Siren size={34} color="#ef4444" />
+              </motion.span>
+            ) : (
+              <motion.span
+                style={{ display: 'inline-flex' }}
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <TriangleAlert size={34} color="#d97706" />
+              </motion.span>
+            )}
           </div>
 
           <h2 id="warn-title" style={{
@@ -120,7 +138,7 @@ export default function WarningOverlay({
           }}>
             {remaining > 0 ? (
               isCritical
-                ? '🚨 One more switch will disqualify you from this exam!'
+                ? 'One more switch will disqualify you from this exam!'
                 : `You have ${remaining} switch${remaining === 1 ? '' : 'es'} remaining before disqualification.`
             ) : (
               'You have been disqualified. Your exam is being submitted.'

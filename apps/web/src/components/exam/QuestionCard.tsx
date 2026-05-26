@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface QuestionOptions {
@@ -277,7 +278,7 @@ export default function QuestionCard({
               minHeight: 44,
             }}
           >
-            ✕ Clear
+            <X size={12} style={{ flexShrink: 0 }} /> Clear
           </button>
         ) : (
           <div />

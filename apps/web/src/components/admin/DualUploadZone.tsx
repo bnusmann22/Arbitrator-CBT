@@ -1,6 +1,19 @@
 'use client';
 
+import React from 'react';
 import { useRef, useState, DragEvent, ChangeEvent } from 'react';
+import {
+  FileText,
+  X,
+  Paperclip,
+  ArrowDownToLine,
+  ClipboardList,
+  KeyRound,
+  FolderOpen,
+  TriangleAlert,
+  Info,
+  Search,
+} from 'lucide-react';
 import type { UploadResult } from './UploadZone';
 
 interface DualUploadZoneProps {
@@ -35,7 +48,7 @@ type FileZoneProps = {
   label: string;
   subtitle: string;
   accept: string;
-  icon: string;
+  icon: React.ReactNode;
   accentColor: string;
   file: File | null;
   onFile: (f: File) => void;
@@ -68,7 +81,7 @@ function FileZone({ label, subtitle, accept, icon, accentColor, file, onFile, on
         letterSpacing: '0.04em',
         marginBottom: 8,
       }}>
-        {icon} {label}
+        <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle', marginRight: 5 }}>{icon}</span>{label}
       </div>
 
       <div
@@ -106,7 +119,7 @@ function FileZone({ label, subtitle, accept, icon, accentColor, file, onFile, on
 
         {file ? (
           <>
-            <div style={{ fontSize: 22 }}>📄</div>
+            <FileText size={22} style={{ opacity: 0.7 }} />
             <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
               {file.name}
             </div>
@@ -126,12 +139,14 @@ function FileZone({ label, subtitle, accept, icon, accentColor, file, onFile, on
                 padding: '2px 6px',
               }}
             >
-              ✕ Remove
+              <X size={11} style={{ verticalAlign: 'middle' }} /> Remove
             </button>
           </>
         ) : (
           <>
-            <div style={{ fontSize: 26, opacity: 0.5 }}>{dragOver ? '⬇' : '📎'}</div>
+            <div style={{ opacity: 0.5 }}>
+              {dragOver ? <ArrowDownToLine size={26} /> : <Paperclip size={26} />}
+            </div>
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontWeight: 500 }}>
               {dragOver ? 'Drop here' : 'Drag & drop or click to browse'}
             </div>
@@ -158,7 +173,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
 
     // If the answer file is an image, warn the user that OCR is running
     if (answerFile.type.startsWith('image/')) {
-      setOcrNote('🔍 Running OCR on answer key image… this may take a moment.');
+      setOcrNote('Running OCR on answer key image… this may take a moment.');
     }
 
     try {
@@ -212,7 +227,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
         color: 'var(--text-secondary)',
         lineHeight: 1.6,
       }}>
-        <span style={{ fontSize: 18, flexShrink: 0 }}>ℹ️</span>
+        <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Info size={18} /></span>
         <div>
           Upload your <strong style={{ color: 'var(--text-primary)' }}>question file</strong> (PDF/DOCX) and a separate{' '}
           <strong style={{ color: 'var(--text-primary)' }}>answer key file</strong> (PDF, DOCX, TXT, or image).
@@ -227,7 +242,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
           label="Question File"
           subtitle="PDF or DOCX with numbered questions"
           accept=".pdf,.docx"
-          icon="📋"
+          icon={<ClipboardList size={13} />}
           accentColor="#6366f1"
           file={questionFile}
           onFile={setQuestionFile}
@@ -237,7 +252,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
           label="Answer Key File"
           subtitle="PDF, DOCX, TXT, or image (JPG, PNG…)"
           accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.bmp,.tiff,.gif,.webp"
-          icon="🗝"
+          icon={<KeyRound size={13} />}
           accentColor="#10b981"
           file={answerFile}
           onFile={setAnswerFile}
@@ -274,7 +289,9 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
           fontSize: 'var(--text-sm)',
           fontWeight: 500,
         }}>
-          {ocrNote}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Search size={14} style={{ flexShrink: 0 }} /> {ocrNote}
+          </span>
         </div>
       )}
 
@@ -288,7 +305,9 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
           color: 'var(--accent-danger)',
           fontSize: 'var(--text-sm)',
         }}>
-          ⚠ {error}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <TriangleAlert size={14} style={{ flexShrink: 0 }} /> {error}
+          </span>
         </div>
       )}
 
@@ -325,7 +344,7 @@ export default function DualUploadZone({ examId, onSuccess }: DualUploadZoneProp
               }} />
               Processing…
             </>
-          ) : '🗂 Upload & Map Answers'}
+          ) : <><FolderOpen size={15} style={{ flexShrink: 0 }} /> Upload &amp; Map Answers</>}
         </button>
 
         {(questionFile || answerFile) && (
