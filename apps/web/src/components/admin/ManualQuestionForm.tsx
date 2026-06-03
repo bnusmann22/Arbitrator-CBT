@@ -11,12 +11,7 @@ interface Props {
 
 const OPTION_LABELS: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
 
-const OPTION_COLOURS: Record<string, string> = {
-  A: '#6366f1', // indigo
-  B: '#0ea5e9', // sky
-  C: '#10b981', // emerald
-  D: '#f59e0b', // amber
-};
+const SELECTED_GREEN = '#10b981';
 
 const API = '/api/proxy';
 
@@ -131,9 +126,9 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
                 width: 30,
                 height: 30,
                 borderRadius: '50%',
-                background: `${OPTION_COLOURS[key]}22`,
-                border: `2px solid ${OPTION_COLOURS[key]}`,
-                color: OPTION_COLOURS[key],
+                background: 'rgba(100,116,139,0.1)',
+                border: '2px solid #cbd5e1',
+                color: '#64748b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -159,7 +154,7 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
                   fontFamily: 'var(--font-sans)',
                   outline: 'none',
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = OPTION_COLOURS[key])}
+                onFocus={(e) => (e.currentTarget.style.borderColor = SELECTED_GREEN)}
                 onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border-primary)')}
               />
             </div>
@@ -182,14 +177,14 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
                   width: 44,
                   height: 44,
                   borderRadius: 'var(--radius-md)',
-                  border: `2px solid ${selected ? OPTION_COLOURS[key] : 'var(--border-primary)'}`,
-                  background: selected ? `${OPTION_COLOURS[key]}22` : 'var(--bg-secondary)',
-                  color: selected ? OPTION_COLOURS[key] : 'var(--text-secondary)',
+                  border: `2px solid ${selected ? SELECTED_GREEN : 'var(--border-primary)'}`,
+                  background: selected ? 'rgba(16,185,129,0.08)' : 'var(--bg-secondary)',
+                  color: selected ? SELECTED_GREEN : 'var(--text-secondary)',
                   fontWeight: 800,
                   fontSize: 16,
                   cursor: 'pointer',
                   transition: 'all 0.15s',
-                  boxShadow: selected ? `0 0 0 3px ${OPTION_COLOURS[key]}33` : 'none',
+                  boxShadow: selected ? '0 0 0 3px rgba(16,185,129,0.13)' : 'none',
                 }}
               >
                 {key}
@@ -203,7 +198,7 @@ export default function ManualQuestionForm({ examId, onSuccess }: Props) {
             fontSize: 'var(--text-sm)',
             color: 'var(--text-secondary)',
           }}>
-            Option <strong style={{ color: OPTION_COLOURS[correctAnswer], marginLeft: 4 }}>{correctAnswer}</strong> is correct
+            Option <strong style={{ color: SELECTED_GREEN, marginLeft: 4 }}>{correctAnswer}</strong> is correct
           </span>
         </div>
       </div>

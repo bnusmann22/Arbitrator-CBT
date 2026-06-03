@@ -25,12 +25,7 @@ interface QuestionCardProps {
 
 const KEYS: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
 
-const OPTION_COLOURS: Record<string, { border: string; bg: string; bubble: string }> = {
-  A: { border: '#6366f1', bg: 'rgba(99,102,241,0.08)',  bubble: '#6366f1' },
-  B: { border: '#0ea5e9', bg: 'rgba(14,165,233,0.08)',  bubble: '#0ea5e9' },
-  C: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  bubble: '#10b981' },
-  D: { border: '#f59e0b', bg: 'rgba(245,158,11,0.08)', bubble: '#f59e0b' },
-};
+const SELECTED_STYLE = { border: '#10b981', bg: 'rgba(16,185,129,0.08)', bubble: '#10b981' };
 
 export default function QuestionCard({
   index,
@@ -146,7 +141,6 @@ export default function QuestionCard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 9 : 10 }} role="radiogroup">
           {KEYS.map((key) => {
             const isSelected = selectedOption === key;
-            const col = OPTION_COLOURS[key];
 
             return (
               <label
@@ -157,19 +151,18 @@ export default function QuestionCard({
                   gap: isMobile ? 10 : 14,
                   padding: isMobile ? '13px 12px' : '14px 16px',
                   borderRadius: isMobile ? 10 : 12,
-                  border: `2px solid ${isSelected ? col.border : '#e2e8f0'}`,
-                  background: isSelected ? col.bg : '#fff',
+                  border: `2px solid ${isSelected ? SELECTED_STYLE.border : '#e2e8f0'}`,
+                  background: isSelected ? SELECTED_STYLE.bg : '#fff',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   userSelect: 'none',
-                  boxShadow: isSelected ? `0 0 0 3px ${col.border}22` : 'none',
-                  /* Minimum touch target height (WCAG 2.5.5) */
+                  boxShadow: isSelected ? '0 0 0 3px rgba(16,185,129,0.13)' : 'none',
                   minHeight: 48,
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected) {
-                    (e.currentTarget as HTMLLabelElement).style.borderColor = col.border + '80';
-                    (e.currentTarget as HTMLLabelElement).style.background = col.bg + '80';
+                    (e.currentTarget as HTMLLabelElement).style.borderColor = '#cbd5e1';
+                    (e.currentTarget as HTMLLabelElement).style.background = '#f8fafc';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -194,8 +187,8 @@ export default function QuestionCard({
                   width: isMobile ? 30 : 32,
                   height: isMobile ? 30 : 32,
                   borderRadius: '50%',
-                  background: isSelected ? col.bubble : '#f1f5f9',
-                  border: `2px solid ${isSelected ? col.bubble : '#cbd5e1'}`,
+                  background: isSelected ? SELECTED_STYLE.bubble : '#f1f5f9',
+                  border: `2px solid ${isSelected ? SELECTED_STYLE.bubble : '#cbd5e1'}`,
                   color: isSelected ? '#fff' : '#64748b',
                   display: 'flex',
                   alignItems: 'center',
@@ -203,7 +196,7 @@ export default function QuestionCard({
                   fontSize: '0.8rem',
                   fontWeight: 800,
                   transition: 'all 0.15s ease',
-                  boxShadow: isSelected ? `0 2px 8px ${col.bubble}55` : 'none',
+                  boxShadow: isSelected ? '0 2px 8px rgba(16,185,129,0.33)' : 'none',
                   marginTop: 2,
                 }}>
                   {key}
